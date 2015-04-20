@@ -1,0 +1,5 @@
+# acoustid extension
+comment = 'AcoustID utility functions'
+default_version = '1.0'
+module_pathname = '$libdir/acoustid'
+relocatable = true

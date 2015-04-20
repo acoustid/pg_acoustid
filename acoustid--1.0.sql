@@ -1,5 +1,5 @@
--- Adjust this setting to control where the objects get created.
-SET search_path = public;
+-- complain if script is sourced in psql, rather than via CREATE EXTENSION
+\echo Use "CREATE EXTENSION acoustid" to load this file. \quit
 
 CREATE OR REPLACE FUNCTION acoustid_compare2(int4[], int4[], int DEFAULT 0) RETURNS float4
     AS 'MODULE_PATHNAME'
@@ -9,4 +9,3 @@ CREATE OR REPLACE FUNCTION acoustid_compare2(int4[], int4[], int DEFAULT 0) RETU
 CREATE OR REPLACE FUNCTION acoustid_extract_query(int4[]) RETURNS int4[]
     AS 'MODULE_PATHNAME'
     LANGUAGE C IMMUTABLE STRICT;
-

@@ -1,8 +1,4 @@
-SET client_min_messages = warning;
-\set ECHO none
-\i acoustid.sql
-\set ECHO all
-RESET client_min_messages;
+CREATE EXTENSION acoustid;
 
 SELECT acoustid_compare('{}'::int4[], '{}'::int4[]);
 SELECT acoustid_compare('{1}'::int4[], '{}'::int4[]);

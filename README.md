@@ -26,3 +26,10 @@ Using in PostgreSQL:
 ```sql
 CREATE EXTENSION acoustid;
 ```
+
+If you have a version from before PostgreSQL 9.1 installed, you can upgrade it
+to a properly package one with:
+
+```sql
+CREATE EXTENSION acoustid FROM unpackaged;
+```
