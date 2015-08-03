@@ -126,8 +126,8 @@ match_fingerprints2(int32 *a, int asize, int32 *b, int bsize, int maxoffset)
 	uint64_t *adata, *bdata;
 	float4 score, diversity;
 
-	aoffsets = palloc0(sizeof(uint16_t) * MATCH_MASK * 2);
-	boffsets = aoffsets + MATCH_MASK;
+	aoffsets = palloc0(sizeof(uint16_t) * (MATCH_MASK + 1) * 2);
+	boffsets = aoffsets + MATCH_MASK + 1;
 	seen = (uint8_t *)aoffsets;
 
 	for (i = 0; i < asize; i++) {
