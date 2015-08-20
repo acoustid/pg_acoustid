@@ -32,6 +32,9 @@ Datum       acoustid_compare(PG_FUNCTION_ARGS);
 PG_FUNCTION_INFO_V1(acoustid_compare2);
 Datum       acoustid_compare2(PG_FUNCTION_ARGS);
 
+PG_FUNCTION_INFO_V1(acoustid_compare3);
+Datum       acoustid_compare3(PG_FUNCTION_ARGS);
+
 PG_FUNCTION_INFO_V1(acoustid_extract_query);
 Datum       acoustid_extract_query(PG_FUNCTION_ARGS);
 
@@ -222,6 +225,44 @@ exit:
 	return score;
 }
 
+static float4
+match_fingerprints3(int32 *a, int asize, int32 *b, int bsize, int maxoffset)
+{
+    int i, j, topcount;
+    int jbegin = 0;
+    int jend = bsize;
+    int numcounts = asize + bsize + 1;
+    int *counts = palloc0(sizeof(int) * numcounts);
+
+    for (i = 0; i < asize; i++) {
+        if (maxoffset > -1) {
+            jbegin = Max(0, i - maxoffset);
+            jend = Min(bsize, i + maxoffset);
+        }
+        for (j = jbegin; j < jend; j++) {
+            int offset = i - j + bsize;
+            int biterror = BITCOUNT(a[i] ^ b[j]);
+            // Randomly selected blocks share around half their bits, so only count
+            // errors less than 16 bits
+            if (biterror < 16) {
+                counts[offset] += 16 - biterror;
+            }
+        }
+    }
+
+    topcount = 0;
+    for (i = 0; i < numcounts; i++) {
+        if (counts[i] > topcount) {
+            topcount = counts[i];
+        }
+    }
+
+    pfree(counts);
+
+    return (float4)topcount / (16.0 * Min(asize, bsize));
+}
+
+
 /* PostgreSQL functions */
 
 Datum
@@ -257,6 +298,27 @@ acoustid_compare2(PG_FUNCTION_ARGS)
 		PG_RETURN_FLOAT4(0.0f);
 
 	result = match_fingerprints2(
+		ARRPTR(a), ARRNELEMS(a),
+		ARRPTR(b), ARRNELEMS(b),
+		maxoffset);
+
+	PG_RETURN_FLOAT4(result);
+}
+
+Datum
+acoustid_compare3(PG_FUNCTION_ARGS)
+{
+	ArrayType *a = PG_GETARG_ARRAYTYPE_P(0);
+	ArrayType *b = PG_GETARG_ARRAYTYPE_P(1);
+	int32 maxoffset = PG_GETARG_INT32(2);
+	float4 result;
+
+	CHECKARRVALID(a);
+	CHECKARRVALID(b);
+	if (ARRISVOID(a) || ARRISVOID(b))
+		PG_RETURN_FLOAT4(0.0f);
+
+	result = match_fingerprints3(
 		ARRPTR(a), ARRNELEMS(a),
 		ARRPTR(b), ARRNELEMS(b),
 		maxoffset);
