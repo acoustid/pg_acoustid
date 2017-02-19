@@ -2,7 +2,7 @@
 #include "fmgr.h"
 #include "utils/array.h"
 #include "catalog/pg_type.h"
-#include "utils.h"
+#include "acoustid_utils.h"
 
 static uint8_t *
 unpack_uint3_array(const uint8_t *first, const uint8_t *last, uint8_t *dest) {

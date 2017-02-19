@@ -5,7 +5,7 @@
 #include "fmgr.h"
 #include "utils/array.h"
 #include "catalog/pg_type.h"
-#include "utils.h"
+#include "acoustid_utils.h"
 #include "acoustid.h"
 
 #define ACOUSTID_MAX_BIT_ERROR 2
