@@ -11,6 +11,14 @@ SELECT acoustid_decode_fingerprint(decode('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin
  {443056572,443062204,976852924,976928665,708492953,725131177,691769305,695908425,1836754952,1830534168,1830534168,1696316440,1729855352,1662662380,1664751276,1635387053,1643650751,1639460542,1639460030}
 (1 row)
 
+SELECT acoustid_decode_fingerprint(decode('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH/kH7amR5zgAYCggGginjgFAKAMUMQA=', 'base64'), 10);
+ERROR:  unsupported version of fingerprint
+SELECT acoustid_decode_fingerprint(decode('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH/kH7amR5zgAYCggGginjgFAKAMUMQA=', 'base64'), 1);
+                                                                                        acoustid_decode_fingerprint                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {443056572,443062204,976852924,976928665,708492953,725131177,691769305,695908425,1836754952,1830534168,1830534168,1696316440,1729855352,1662662380,1664751276,1635387053,1643650751,1639460542,1639460030}
+(1 row)
+
 SELECT acoustid_decode_fingerprint('');
 ERROR:  not enough data to decode fingerprint
 SELECT acoustid_decode_fingerprint('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgc');
@@ -18,6 +26,14 @@ ERROR:  not enough data to decode fingerprint (normal bits)
 SELECT acoustid_decode_fingerprint('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH_kH7amR5zgAnjgFAAMUMQA');
 ERROR:  not enough data to decode fingerprint (exception bits)
 SELECT acoustid_decode_fingerprint('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH_kH7amR5zgAYCggGginjgFAKAMUMQA');
+                                                                                        acoustid_decode_fingerprint                                                                                         
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {443056572,443062204,976852924,976928665,708492953,725131177,691769305,695908425,1836754952,1830534168,1830534168,1696316440,1729855352,1662662380,1664751276,1635387053,1643650751,1639460542,1639460030}
+(1 row)
+
+SELECT acoustid_decode_fingerprint('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH_kH7amR5zgAYCggGginjgFAKAMUMQA', 10);
+ERROR:  unsupported version of fingerprint
+SELECT acoustid_decode_fingerprint('AQAAE0uinMoUPMKpI5q14Eez8mhi5uiSKDNin6jFBjgcpTmmZdPxH_kH7amR5zgAYCggGginjgFAKAMUMQA', 1);
                                                                                         acoustid_decode_fingerprint                                                                                         
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  {443056572,443062204,976852924,976928665,708492953,725131177,691769305,695908425,1836754952,1830534168,1830534168,1696316440,1729855352,1662662380,1664751276,1635387053,1643650751,1639460542,1639460030}

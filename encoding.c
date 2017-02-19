@@ -159,15 +159,20 @@ base64_decode(const uint8_t *src, ssize_t size, uint8_t *dest)
 }
 
 static Datum
-decode_fingerprint(const uint8_t *in_data, int in_size)
+decode_fingerprint(const uint8_t *in_data, int in_size, int expected_algo)
 {
     ArrayType *out;
     uint8_t *bits, *exc_bits;
     uint32_t value, *out_data;
-    int i, j, off, num_values, num_bits, num_exc_bits, num_wanted_exc_bits, last_bit;
+    int i, j, off, num_values, num_bits, num_exc_bits, num_wanted_exc_bits, last_bit, algo;
 
     if (in_size <= 4) {
         ereport(ERROR, (errmsg("not enough data to decode fingerprint")));
+    }
+
+    algo = in_data[0];
+    if (expected_algo != -1 && expected_algo != algo) {
+        ereport(ERROR, (errmsg("unsupported version of fingerprint")));
     }
 
     num_values = (in_data[1] << 16) | (in_data[2] << 8) | in_data[3];
@@ -250,14 +255,20 @@ acoustid_decode_fingerprint_bytea(PG_FUNCTION_ARGS)
 {
     bytea *in;
     uint8_t *data;
-    int size;
+    int size, algo;
     Datum result;
 
     in = PG_GETARG_BYTEA_P(0);
     size = VARSIZE(in) - VARHDRSZ;
     data = (uint8_t *) VARDATA(in);
 
-    result = decode_fingerprint(data, size);
+    if (PG_NARGS() > 1) {
+        algo = PG_GETARG_INT32(1);
+    } else {
+        algo = -1;
+    }
+
+    result = decode_fingerprint(data, size, algo);
 
     PG_FREE_IF_COPY(in, 0);
 
@@ -269,18 +280,24 @@ acoustid_decode_fingerprint_text(PG_FUNCTION_ARGS)
 {
     text *in;
     uint8_t *text_data, *data;
-    int text_size, size;
+    int text_size, size, algo;
     Datum result;
 
     in = PG_GETARG_TEXT_P(0);
     text_size = VARSIZE(in) - VARHDRSZ;
     text_data = (uint8_t *) VARDATA(in);
 
+    if (PG_NARGS() > 1) {
+        algo = PG_GETARG_INT32(1);
+    } else {
+        algo = -1;
+    }
+
     size = base64_decode(text_data, text_size, NULL);
     data = (uint8_t *) palloc(size);
     size = base64_decode(text_data, text_size, data);
 
-    result = decode_fingerprint(data, size);
+    result = decode_fingerprint(data, size, algo);
 
     pfree(data);
     PG_FREE_IF_COPY(in, 0);

@@ -22,6 +22,14 @@ CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(bytea) RETURNS int4[]
     AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_bytea'
     LANGUAGE C IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(bytea, int) RETURNS int4[]
+    AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_bytea'
+    LANGUAGE C IMMUTABLE STRICT;
+
 CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(text) RETURNS int4[]
+    AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_text'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(text, int) RETURNS int4[]
     AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_text'
     LANGUAGE C IMMUTABLE STRICT;
