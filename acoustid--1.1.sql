@@ -19,5 +19,9 @@ CREATE OR REPLACE FUNCTION acoustid_extract_full_query(int4[], int) RETURNS int4
     LANGUAGE C IMMUTABLE STRICT;
 
 CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(bytea) RETURNS int4[]
-    AS 'MODULE_PATHNAME'
+    AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_bytea'
+    LANGUAGE C IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION acoustid_decode_fingerprint(text) RETURNS int4[]
+    AS 'MODULE_PATHNAME', 'acoustid_decode_fingerprint_text'
     LANGUAGE C IMMUTABLE STRICT;

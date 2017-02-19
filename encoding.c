@@ -90,21 +90,81 @@ unpack_uint5_array(const uint8_t *first, const uint8_t *last, uint8_t *dest) {
 	return dest;
 }
 
-PG_FUNCTION_INFO_V1(acoustid_decode_fingerprint);
-Datum acoustid_decode_fingerprint(PG_FUNCTION_ARGS);
+static const char base64_chars[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+static const char base64_chars_reversed[256] = {
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 62, 0, 0,
+    52, 53, 54, 55, 56, 57, 58, 59,
+    60, 61, 0, 0, 0, 0, 0, 0,
+    0, 0, 1, 2, 3, 4, 5, 6,
+    7, 8, 9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22,
+    23, 24, 25, 0, 0, 0, 0, 63,
+    0, 26, 27, 28, 29, 30, 31, 32,
+    33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48,
+    49, 50, 51, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+};
 
-Datum
-acoustid_decode_fingerprint(PG_FUNCTION_ARGS)
+static ssize_t
+base64_decode(const uint8_t *src, ssize_t size, uint8_t *dest)
 {
-    bytea *in;
-    ArrayType *out;
-    uint8_t *bits, *exc_bits, *in_data;
-    uint32_t value, *out_data;
-    int i, j, off, num_values, num_bits, num_exc_bits, num_wanted_exc_bits, last_bit, in_size;
+    const uint8_t *dest_copy;
+    if (!dest) {
+        return size * 3 / 4;
+    }
+    dest_copy = dest;
+    while (size >= 4) {
+        const uint8_t b0 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b1 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b2 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b3 = base64_chars_reversed[*src++ & 255];
+        *dest++ = (b0 << 2) | (b1 >> 4);
+        *dest++ = ((b1 << 4) & 255) | (b2 >> 2);
+        *dest++ = ((b2 << 6) & 255) | b3;
+        size -= 4;
+    }
+    if (size == 3) {
+        const uint8_t b0 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b1 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b2 = base64_chars_reversed[*src++ & 255];
+        *dest++ = (b0 << 2) | (b1 >> 4);
+        *dest++ = ((b1 << 4) & 255) | (b2 >> 2);
+    } else if (size == 2) {
+        const uint8_t b0 = base64_chars_reversed[*src++ & 255];
+        const uint8_t b1 = base64_chars_reversed[*src++ & 255];
+        *dest++ = (b0 << 2) | (b1 >> 4);
+    }
+    return dest - dest_copy;
+}
 
-    in = PG_GETARG_BYTEA_P(0);
-    in_data = (uint8_t *) VARDATA(in);
-    in_size = VARSIZE(in) - VARHDRSZ;
+static Datum
+decode_fingerprint(const uint8_t *in_data, int in_size)
+{
+    ArrayType *out;
+    uint8_t *bits, *exc_bits;
+    uint32_t value, *out_data;
+    int i, j, off, num_values, num_bits, num_exc_bits, num_wanted_exc_bits, last_bit;
 
     if (in_size <= 4) {
         ereport(ERROR, (errmsg("not enough data to decode fingerprint")));
@@ -177,4 +237,53 @@ acoustid_decode_fingerprint(PG_FUNCTION_ARGS)
 
     pfree(bits);
 	PG_RETURN_ARRAYTYPE_P(out);
+}
+
+PG_FUNCTION_INFO_V1(acoustid_decode_fingerprint_bytea);
+Datum acoustid_decode_fingerprint_bytea(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(acoustid_decode_fingerprint_text);
+Datum acoustid_decode_fingerprint_text(PG_FUNCTION_ARGS);
+
+Datum
+acoustid_decode_fingerprint_bytea(PG_FUNCTION_ARGS)
+{
+    bytea *in;
+    uint8_t *data;
+    int size;
+    Datum result;
+
+    in = PG_GETARG_BYTEA_P(0);
+    size = VARSIZE(in) - VARHDRSZ;
+    data = (uint8_t *) VARDATA(in);
+
+    result = decode_fingerprint(data, size);
+
+    PG_FREE_IF_COPY(in, 0);
+
+    return result;
+}
+
+Datum
+acoustid_decode_fingerprint_text(PG_FUNCTION_ARGS)
+{
+    text *in;
+    uint8_t *text_data, *data;
+    int text_size, size;
+    Datum result;
+
+    in = PG_GETARG_TEXT_P(0);
+    text_size = VARSIZE(in) - VARHDRSZ;
+    text_data = (uint8_t *) VARDATA(in);
+
+    size = base64_decode(text_data, text_size, NULL);
+    data = (uint8_t *) palloc(size);
+    size = base64_decode(text_data, text_size, data);
+
+    result = decode_fingerprint(data, size);
+
+    pfree(data);
+    PG_FREE_IF_COPY(in, 0);
+
+    return result;
 }
