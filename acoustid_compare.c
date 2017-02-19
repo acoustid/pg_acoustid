@@ -6,6 +6,8 @@
 #include "utils/array.h"
 #include "catalog/pg_type.h"
 #include "popcount.h"
+#include "utils.h"
+#include "acoustid.h"
 
 /* fingerprint matcher settings */
 #define ACOUSTID_MAX_BIT_ERROR 2
@@ -31,33 +33,6 @@ Datum       acoustid_compare(PG_FUNCTION_ARGS);
 
 PG_FUNCTION_INFO_V1(acoustid_compare2);
 Datum       acoustid_compare2(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_extract_query);
-Datum       acoustid_extract_query(PG_FUNCTION_ARGS);
-
-/* dimension of array */
-#define NDIM 1
-
-/* useful macros for accessing int32 arrays */
-#define ARRPTR(x)  ( (int32 *) ARR_DATA_PTR(x) )
-#define ARRNELEMS(x)  ArrayGetNItems(ARR_NDIM(x), ARR_DIMS(x))
-
-/* reject arrays we can't handle; but allow a NULL or empty array */
-#define CHECKARRVALID(x) \
-	do { \
-		if (x) { \
-			if (ARR_NDIM(x) != NDIM && ARR_NDIM(x) != 0) \
-				ereport(ERROR, \
-						(errcode(ERRCODE_ARRAY_SUBSCRIPT_ERROR), \
-						 errmsg("array must be one-dimensional"))); \
-			if (ARR_HASNULL(x)) \
-				ereport(ERROR, \
-						(errcode(ERRCODE_NULL_VALUE_NOT_ALLOWED), \
-						 errmsg("array must not contain nulls"))); \
-		} \
-	} while(0)
-
-#define ARRISVOID(x)  ((x) == NULL || ARRNELEMS(x) == 0)
 
 /* From http://en.wikipedia.org/wiki/Hamming_weight */
 
@@ -262,66 +237,5 @@ acoustid_compare2(PG_FUNCTION_ARGS)
 		maxoffset);
 
 	PG_RETURN_FLOAT4(result);
-}
-
-static ArrayType *
-new_intArrayType(int num)
-{
-	ArrayType *r;
-	int nbytes = ARR_OVERHEAD_NONULLS(1) + sizeof(int32) * num;
-
-	r = (ArrayType *) palloc0(nbytes);
-
-	SET_VARSIZE(r, nbytes);
-	ARR_NDIM(r) = 1;
-	r->dataoffset = 0;          /* marker for no null bitmap */
-	ARR_ELEMTYPE(r) = INT4OID;
-	ARR_DIMS(r)[0] = num;
-	ARR_LBOUND(r)[0] = 1;
-
-	return r;
-}
-
-Datum
-acoustid_extract_query(PG_FUNCTION_ARGS)
-{
-	ArrayType *a = PG_GETARG_ARRAYTYPE_P(0), *q;
-	int32 *orig, *query;
-	int i, j, size, cleansize, querysize;
-
-	CHECKARRVALID(a);
-	size = ARRNELEMS(a);
-	orig = ARRPTR(a);
-
-	cleansize = 0;
-	for (i = 0; i < size; i++) {
-		if (orig[i] != 627964279) {
-			cleansize++;
-		}
-	}
-
-	if (cleansize <= 0) {
-		PG_RETURN_ARRAYTYPE_P(new_intArrayType(0));
-	}
-
-	q = new_intArrayType(120);
-	query = ARRPTR(q);
-	querysize = 0;
-	for (i = Max(0, Min(cleansize - ACOUSTID_QUERY_LENGTH, ACOUSTID_QUERY_START)); i < size && querysize < ACOUSTID_QUERY_LENGTH; i++) {
-		int32 x = ACOUSTID_QUERY_STRIP(orig[i]);
-		if (orig[i] == 627964279) {
-			goto next; // silence
-		}
-		for (j = 0; j < querysize; j++) { // XXX O(N^2) dupe detection, try if O(N*logN) sorting works better on the tiny array
-			if (query[j] == x) {
-				goto next; // duplicate
-			}
-		}
-		query[querysize++] = x;
-	next: ;
-	}
-	ARR_DIMS(q)[0] = querysize;
-
-	PG_RETURN_ARRAYTYPE_P(q);
 }
 

@@ -1,2 +1,4 @@
 *.so
 *.o
+/regression.*
+/results/
