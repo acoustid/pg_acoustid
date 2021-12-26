@@ -24,20 +24,6 @@
 #define UNIQ_MASK ((1 << MATCH_BITS) - 1)
 #define UNIQ_STRIP(x) ((uint32_t)(x) >> (32 - MATCH_BITS))
 
-PG_MODULE_MAGIC;
-
-PG_FUNCTION_INFO_V1(acoustid_compare);
-Datum       acoustid_compare(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_compare2);
-Datum       acoustid_compare2(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_compare3);
-Datum       acoustid_compare3(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_extract_query);
-Datum       acoustid_extract_query(PG_FUNCTION_ARGS);
-
 /* dimension of array */
 #define NDIM 1
 
@@ -85,6 +71,10 @@ popcount_3(uint64_t x)
 #define BITCOUNT(x)  popcount_lookup8(x)
 #define BITCOUNT64(x)  popcount_3(x)
 
+Datum acoustid_compare(PG_FUNCTION_ARGS);
+Datum acoustid_compare2(PG_FUNCTION_ARGS);
+Datum acoustid_compare3(PG_FUNCTION_ARGS);
+Datum acoustid_extract_query(PG_FUNCTION_ARGS);
 
 static float4
 match_fingerprints(int32 *a, int asize, int32 *b, int bsize)

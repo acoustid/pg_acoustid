@@ -1,5 +1,5 @@
 MODULE_big = acoustid
-OBJS = acoustid_compare.o
+OBJS = acoustid.o acoustid_compare.o acoustid_fingerprint_encoding.o
 
 EXTENSION = acoustid
 DATA = acoustid--1.0.sql acoustid--unpackaged--1.0.sql
