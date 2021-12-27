@@ -1,0 +1,7 @@
+CREATE EXTENSION acoustid;
+SELECT '{1,2,3}'::acoustid_fingerprint;
+ acoustid_fingerprint 
+----------------------
+ {1,2,3,32}
+(1 row)
+
