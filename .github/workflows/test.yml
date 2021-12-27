@@ -1,0 +1,14 @@
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    strategy:
+      matrix:
+        pg: [12, 11, 10]
+    name: Test on PostgreSQL ${{ matrix.pg }}
+    runs-on: ubuntu-latest
+    container: pgxn/pgxn-tools
+    steps:
+      - run: pg-start ${{ matrix.pg }}
+      - uses: actions/checkout@v2
+      - run: pg-build-test
