@@ -34,7 +34,7 @@ Fingerprint *create_fingerprint_from_str(char *str) {
     }
 
     // Allocate the fingerprint structure
-    fp = palloc(VARHDRSZ + sizeof(uint32) * num_terms);
+    fp = palloc(FINGERPRINT_SIZE(num_terms));
 
     // Parse the fingerprint string and extract all terms
     for (it = str + 1, num_terms = 0; *it != '\0'; it++) {
@@ -43,11 +43,12 @@ Fingerprint *create_fingerprint_from_str(char *str) {
         } else if (*it == '}') {
             break;
         }
-        fp->data[num_terms++] = strtoul(it, &it, 10);
+        FINGERPRINT_TERM(fp, num_terms) = strtol(it, &it, 10);
+        num_terms++;
     }
 
     // Update the size field to match the actual number of terms
-    SET_VARSIZE(fp, VARHDRSZ + sizeof(uint32) * num_terms);
+    SET_VARSIZE(fp, FINGERPRINT_SIZE(num_terms));
 
     return fp;
 }
@@ -55,11 +56,11 @@ Fingerprint *create_fingerprint_from_str(char *str) {
 void fingerprint_to_str(Fingerprint *fp, StringInfo buf) {
     int i, num_terms;
     appendStringInfo(buf, "{");
-    num_terms = VARSIZE(fp) / sizeof(uint32);
+    num_terms = FINGERPRINT_NTERMS(fp);
     if (num_terms > 0) {
-        appendStringInfo(buf, "%u", fp->data[0]);
+        appendStringInfo(buf, "%u", FINGERPRINT_TERM(fp, 0));
         for (i = 1; i < num_terms; i++) {
-            appendStringInfo(buf, ",%u", fp->data[i]);
+            appendStringInfo(buf, ",%u", FINGERPRINT_TERM(fp, i));
         }
     }
     appendStringInfo(buf, "}");
@@ -69,31 +70,31 @@ Fingerprint *create_fingerprint_from_bytes(StringInfo buf) {
     Fingerprint *fp;
     int i, num_terms;
     num_terms = pq_getmsgint(buf, sizeof(uint32));
-    fp = palloc(VARHDRSZ + sizeof(uint32) * num_terms);
-    SET_VARSIZE(fp, VARHDRSZ + sizeof(uint32) * num_terms);
+    fp = palloc(FINGERPRINT_SIZE(num_terms));
+    SET_VARSIZE(fp, FINGERPRINT_SIZE(num_terms));
     for (i = 0; i < num_terms; i++) {
-        fp->data[i] = pq_getmsgint(buf, sizeof(uint32));
+        FINGERPRINT_TERM(fp, i) = pq_getmsgint(buf, sizeof(uint32));
     }
     return fp;
 }
 
 void fingerprint_to_bytes(Fingerprint *fp, StringInfo buf) {
     int i, num_terms;
-    num_terms = VARSIZE(fp) / sizeof(uint32);
+    num_terms = FINGERPRINT_NTERMS(fp);
     pq_sendint32(buf, num_terms);
     for (i = 0; i < num_terms; i++) {
-        pq_sendint32(buf, fp->data[i]);
+        pq_sendint32(buf, FINGERPRINT_TERM(fp, i));
     }
 }
 
 Datum acoustid_fingerprint_in(PG_FUNCTION_ARGS) {
     char *str = PG_GETARG_CSTRING(0);
     Fingerprint *fp = create_fingerprint_from_str(str);
-    PG_RETURN_POINTER(fp);
+    PG_RETURN_FINGERPRINT_P(fp);
 }
 
 Datum acoustid_fingerprint_out(PG_FUNCTION_ARGS) {
-    Fingerprint *fp = (Fingerprint *)PG_GETARG_POINTER(0);
+    Fingerprint *fp = PG_GETARG_FINGERPRINT_P(0);
     StringInfoData buf;
     initStringInfo(&buf);
     fingerprint_to_str(fp, &buf);
@@ -103,11 +104,11 @@ Datum acoustid_fingerprint_out(PG_FUNCTION_ARGS) {
 Datum acoustid_fingerprint_recv(PG_FUNCTION_ARGS) {
     StringInfo buf = (StringInfo)PG_GETARG_POINTER(0);
     Fingerprint *fp = create_fingerprint_from_bytes(buf);
-    PG_RETURN_POINTER(fp);
+    PG_RETURN_FINGERPRINT_P(fp);
 }
 
 Datum acoustid_fingerprint_send(PG_FUNCTION_ARGS) {
-    Fingerprint *fp = (Fingerprint *)PG_GETARG_POINTER(0);
+    Fingerprint *fp = PG_GETARG_FINGERPRINT_P(0);
     StringInfoData buf;
     pq_begintypsend(&buf);
     fingerprint_to_bytes(fp, &buf);

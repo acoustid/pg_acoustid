@@ -10,6 +10,16 @@ typedef struct {
     uint32 data[0];
 } Fingerprint;
 
+/* fmgr interface macros */
+#define DatumGetFingerprintP(x) ((Fingerprint *)PG_DETOAST_DATUM(x))
+#define PG_GETARG_FINGERPRINT_P(x) DatumGetFingerprintP(PG_GETARG_DATUM(x))
+#define PG_RETURN_FINGERPRINT_P(x) PG_RETURN_POINTER(x)
+
+/* fingerprint accessor macros */
+#define FINGERPRINT_SIZE(nterms) (VARHDRSZ + sizeof(uint32) * (nterms))
+#define FINGERPRINT_NTERMS(fp) ((VARSIZE(fp) - VARHDRSZ) / sizeof(uint32))
+#define FINGERPRINT_TERM(fp, i) ((fp)->data[i])
+
 Fingerprint *create_fingerprint_from_str(char *str);
 void fingerprint_to_str(Fingerprint *fp, StringInfo buf);
 
