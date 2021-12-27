@@ -81,9 +81,9 @@ Fingerprint *create_fingerprint_from_bytes(StringInfo buf) {
 void fingerprint_to_bytes(Fingerprint *fp, StringInfo buf) {
     int i, num_terms;
     num_terms = FINGERPRINT_NTERMS(fp);
-    pq_sendint32(buf, num_terms);
+    pq_sendint(buf, num_terms, 4);
     for (i = 0; i < num_terms; i++) {
-        pq_sendint32(buf, FINGERPRINT_TERM(fp, i));
+        pq_sendint(buf, FINGERPRINT_TERM(fp, i), 4);
     }
 }
 
