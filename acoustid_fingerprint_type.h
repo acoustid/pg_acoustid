@@ -7,7 +7,7 @@
 
 typedef struct {
     /* varlena header (do not touch directly!) */
-    int32 vl_len_;
+    char vl_len_[4];
 
     /* fingerprint terms */
     uint32 terms[FLEXIBLE_ARRAY_MEMBER];
