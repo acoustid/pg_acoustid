@@ -6,8 +6,11 @@
 #include "lib/stringinfo.h"
 
 typedef struct {
-    int32 size;
-    uint32 data[0];
+    /* varlena header (do not touch directly!) */
+    int32 vl_len_;
+
+    /* fingerprint terms */
+    uint32 terms[FLEXIBLE_ARRAY_MEMBER];
 } Fingerprint;
 
 /* fmgr interface macros */
@@ -18,7 +21,7 @@ typedef struct {
 /* fingerprint accessor macros */
 #define FINGERPRINT_SIZE(nterms) (VARHDRSZ + sizeof(uint32) * (nterms))
 #define FINGERPRINT_NTERMS(fp) ((VARSIZE(fp) - VARHDRSZ) / sizeof(uint32))
-#define FINGERPRINT_TERM(fp, i) ((fp)->data[i])
+#define FINGERPRINT_TERM(fp, i) ((fp)->terms[i])
 
 Fingerprint *create_fingerprint_from_str(char *str);
 void fingerprint_to_str(Fingerprint *fp, StringInfo buf);
