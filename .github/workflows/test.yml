@@ -4,7 +4,7 @@ jobs:
   test:
     strategy:
       matrix:
-        pg: [12, 11, 10]
+        pg: [14, 13, 12, 11, 10]
     name: Test on PostgreSQL ${{ matrix.pg }}
     runs-on: ubuntu-latest
     container: pgxn/pgxn-tools
