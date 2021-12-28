@@ -3,7 +3,9 @@ OBJS = \
 	   acoustid.o \
 	   acoustid_fingerprint_type.o \
 	   acoustid_fingerprint_encoding.o \
-	   acoustid_compare.o
+	   acoustid_compare.o \
+	   pack_int3_array.o \
+	   pack_int5_array.o
 
 EXTENSION = acoustid
 DATA = acoustid--1.0.sql acoustid--1.0--1.1.sql acoustid--unpackaged--1.0.sql
