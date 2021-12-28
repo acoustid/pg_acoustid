@@ -15,34 +15,37 @@ PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode);
 
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
 
-Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
+Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *version) {
     Fingerprint *fp;
     int i, j, num_terms, num_bits, num_exceptional_bits, found_terms, bit,
-        last_bit;
+        last_bit, cursor = 0;
     uint32_t term, last_term;
-    const char *header;
+    const unsigned char *header;
     unsigned char *bits, *exceptional_bits;
 
-    if (buf->cursor + 4 > buf->len) {
+    elog(DEBUG5, "decode_fingerprint: input_len=%d", input_len);
+
+    if (cursor + 4 > input_len) {
         elog(ERROR, "Invalid fingerprint (shorter than 4 bytes)");
         return NULL;
     }
 
     // Read the header
-    header = buf->data + buf->cursor;
-    buf->cursor += 4;
+    header = input + cursor;
+    cursor += 4;
     if (version) {
         *version = header[0];
     }
     num_terms = ((uint32) header[1] << 16) | ((uint32) header[2] << 8) | header[3];
+    elog(DEBUG5, "decode_fingerprint: num_terms=%d", num_terms);
 
     // Estimate the number of bits stored in the packed fingerprint
-    num_bits = GetUnpackedInt3ArraySize(buf->len - buf->cursor);
+    num_bits = GetUnpackedInt3ArraySize(input_len - cursor);
     bits = palloc(num_bits * sizeof(unsigned char));
+    elog(DEBUG5, "decode_fingerprint: num_bits=%d (estimate)", num_bits);
 
     // Unpack the normal bits
-    UnpackInt3Array((const unsigned char *)buf->data + buf->cursor,
-                    (const unsigned char *)buf->data + buf->len, bits);
+    UnpackInt3Array(input + cursor, input + input_len, bits);
 
     // Find the actual number of normal bits, count the number of exceptional
     // bits
@@ -59,9 +62,11 @@ Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
             num_exceptional_bits++;
         }
     }
+    elog(DEBUG5, "decode_fingerprint: num_bits=%d, num_exceptional_bits=%d",
+        num_bits, num_exceptional_bits);
 
     // Advance the cursor to the end of the normal bits
-    buf->cursor += GetPackedInt3ArraySize(num_bits);
+    cursor += GetPackedInt3ArraySize(num_bits);
 
     if (found_terms != num_terms) {
         elog(INFO, "num_terms=%d found_terms=%d", num_terms, found_terms);
@@ -72,7 +77,7 @@ Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
         return NULL;
     }
 
-    if (buf->cursor + GetPackedInt5ArraySize(num_exceptional_bits) > buf->len) {
+    if (cursor + GetPackedInt5ArraySize(num_exceptional_bits) > input_len) {
         pfree(bits);
         elog(ERROR, "Invalid fingerprint (too short, not enough input for "
                     "exceptional bits)");
@@ -86,9 +91,7 @@ Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
                        GetPackedInt5ArraySize(num_exceptional_bits)) *
                    sizeof(unsigned char));
         // Unpack the exceptional bits
-        UnpackInt5Array((const unsigned char *)buf->data + buf->cursor,
-                        (const unsigned char *)buf->data + buf->len,
-                        exceptional_bits);
+        UnpackInt5Array(input + cursor, input + input_len, exceptional_bits);
         // Add the exceptional bits to the normal bits
         for (i = 0, j = 0; i < num_bits && j < num_exceptional_bits; i++) {
             if (bits[i] == MAX_NORMAL_BIT_VALUE) {
@@ -126,26 +129,25 @@ Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
 Datum acoustid_fingerprint_decode(PG_FUNCTION_ARGS) {
     text *input;
     const char *str;
-    int str_len, decoded_len;
-    StringInfoData buf;
+    unsigned char *bytes;
+    int str_len, bytes_len, ret;
     Fingerprint *fp;
 
     input = PG_GETARG_TEXT_P(0);
     str = text_to_cstring(input);
     str_len = strlen(str);
 
-    buf.len = urlsafe_b64_dec_len(str_len);
-    buf.data = palloc(buf.len);
-    buf.cursor = 0;
+    bytes_len = urlsafe_b64_dec_len(str_len);
+    bytes = palloc(bytes_len);
 
-    decoded_len = urlsafe_b64_decode(str, str_len, buf.data, buf.len);
-    if (decoded_len < 0) {
-        pfree(buf.data);
+    ret = urlsafe_b64_decode(str, str_len, (char *) bytes, bytes_len);
+    if (ret < 0) {
+        pfree(bytes);
         elog(ERROR, "Invalid fingerprint (invalid base64)");
         PG_RETURN_NULL();
     }
 
-    fp = decode_fingerprint(&buf, NULL);
-    pfree(buf.data);
+    fp = decode_fingerprint(bytes, bytes_len, NULL);
+    pfree(bytes);
     PG_RETURN_FINGERPRINT_P(fp);
 }

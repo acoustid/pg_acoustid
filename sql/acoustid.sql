@@ -1,5 +1,7 @@
 CREATE EXTENSION acoustid;
 
+SET client_min_messages TO DEBUG5;
+
 SELECT '{1,2,3}'::acoustid_fingerprint;
 
 CREATE TABLE test_acoustid_fingerprint (
