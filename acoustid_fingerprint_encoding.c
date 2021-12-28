@@ -111,6 +111,7 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
         bit = bits[i];
         if (bit == 0) {
             last_term ^= term;
+            elog(DEBUG5, "decode_fingerprint: setting term: pos=%d, term=%d", j, last_term);
             FINGERPRINT_TERM(fp, j) = last_term;
             last_bit = 0;
             term = 0;
