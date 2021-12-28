@@ -10,14 +10,14 @@
 
 #include "utils/builtins.h"
 
-PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_text);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_bytea);
 
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
 
 Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *version) {
     Fingerprint *fp;
-    int i, j, num_terms, num_bits, num_exceptional_bits, found_terms, bit,
-        last_bit, cursor = 0;
+    int i, j, num_terms, num_bits, num_exceptional_bits, found_terms, bit, last_bit, cursor = 0;
     uint32_t term, last_term;
     const unsigned char *header;
     unsigned char *bits, *exceptional_bits;
@@ -35,7 +35,7 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
     if (version) {
         *version = header[0];
     }
-    num_terms = ((uint32) header[1] << 16) | ((uint32) header[2] << 8) | header[3];
+    num_terms = ((uint32)header[1] << 16) | ((uint32)header[2] << 8) | header[3];
     elog(DEBUG5, "decode_fingerprint: num_terms=%d", num_terms);
 
     // Estimate the number of bits stored in the packed fingerprint
@@ -61,8 +61,7 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
             num_exceptional_bits++;
         }
     }
-    elog(DEBUG5, "decode_fingerprint: num_bits=%d, num_exceptional_bits=%d",
-        num_bits, num_exceptional_bits);
+    elog(DEBUG5, "decode_fingerprint: num_bits=%d, num_exceptional_bits=%d", num_bits, num_exceptional_bits);
 
     // Advance the cursor to the end of the normal bits
     cursor += GetPackedInt3ArraySize(num_bits);
@@ -88,11 +87,10 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
     }
 
     if (num_exceptional_bits > 0) {
-        // Estimate the number of exceptional bits stored in the packed fingerprint
+        // Estimate the number of exceptional bits stored in the packed
+        // fingerprint
         exceptional_bits =
-            palloc(GetUnpackedInt5ArraySize(
-                       GetPackedInt5ArraySize(num_exceptional_bits)) *
-                   sizeof(unsigned char));
+            palloc(GetUnpackedInt5ArraySize(GetPackedInt5ArraySize(num_exceptional_bits)) * sizeof(unsigned char));
         // Unpack the exceptional bits
         UnpackInt5Array(input + cursor, input + input_len, exceptional_bits);
         // Add the exceptional bits to the normal bits
@@ -131,24 +129,46 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
     return fp;
 }
 
-Datum acoustid_fingerprint_decode(PG_FUNCTION_ARGS) {
-    text *input;
+Datum acoustid_fingerprint_decode_text(PG_FUNCTION_ARGS) {
+    text *input_text;
     const char *str;
-    unsigned char *bytes, *bytes_end;
-    int str_len, bytes_len;
+    unsigned char *tmp_bytes, *tmp_bytes_end;
+    size_t str_len, tmp_bytes_len;
     Fingerprint *fp;
 
-    input = PG_GETARG_TEXT_P(0);
-    str = text_to_cstring(input);
-    str_len = strlen(str);
+    input_text = PG_GETARG_TEXT_PP(0);
 
-    bytes_len = GetBase64DecodedSize(str_len);
-    bytes = palloc(bytes_len);
+    str = VARDATA_ANY(input_text);
+    str_len = VARSIZE_ANY_EXHDR(input_text);
 
-    bytes_end = Base64Decode(str, str + str_len, bytes);
-    bytes_len = bytes_end - bytes;
+    tmp_bytes_len = GetBase64DecodedSize(str_len);
+    tmp_bytes = palloc(tmp_bytes_len);
+
+    tmp_bytes_end = Base64Decode(str, str + str_len, tmp_bytes);
+    tmp_bytes_len = tmp_bytes_end - tmp_bytes;
+
+    fp = decode_fingerprint(tmp_bytes, tmp_bytes_len, NULL);
+    pfree(tmp_bytes);
+
+    PG_FREE_IF_COPY(input_text, 0);
+
+    PG_RETURN_FINGERPRINT_P(fp);
+}
+
+Datum acoustid_fingerprint_decode_bytea(PG_FUNCTION_ARGS) {
+    bytea *input_bytea;
+    unsigned char *bytes;
+    size_t bytes_len;
+    Fingerprint *fp;
+
+    input_bytea = PG_GETARG_BYTEA_PP(0);
+
+    bytes = (unsigned char *)VARDATA_ANY(input_bytea);
+    bytes_len = VARSIZE_ANY_EXHDR(input_bytea);
 
     fp = decode_fingerprint(bytes, bytes_len, NULL);
-    pfree(bytes);
+
+    PG_FREE_IF_COPY(input_bytea, 0);
+
     PG_RETURN_FINGERPRINT_P(fp);
 }

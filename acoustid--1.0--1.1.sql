@@ -22,7 +22,12 @@ LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE OR REPLACE FUNCTION acoustid_fingerprint_decode(text)
 RETURNS acoustid_fingerprint
-AS 'MODULE_PATHNAME'
+AS 'MODULE_PATHNAME', 'acoustid_fingerprint_decode_text'
+LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION acoustid_fingerprint_decode(bytea)
+RETURNS acoustid_fingerprint
+AS 'MODULE_PATHNAME', 'acoustid_fingerprint_decode_bytea'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
 CREATE TYPE acoustid_fingerprint (

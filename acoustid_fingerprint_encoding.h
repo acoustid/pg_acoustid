@@ -7,6 +7,7 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
 void encode_fingerprint(Fingerprint *fp, StringInfo buf);
 
 Datum acoustid_fingerprint_encode(PG_FUNCTION_ARGS);
-Datum acoustid_fingerprint_decode(PG_FUNCTION_ARGS);
+Datum acoustid_fingerprint_decode_text(PG_FUNCTION_ARGS);
+Datum acoustid_fingerprint_decode_bytea(PG_FUNCTION_ARGS);
 
 #endif // PG_ACOUSTID_FINGERPRINT_ENCODING_H_
