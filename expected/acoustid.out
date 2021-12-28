@@ -23,9 +23,21 @@ SELECT acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohB
  {198178303,198047167,164426175,164426173,164417981,156103101,156201469,151941501,151941405,151941407,157184799}
 (1 row)
 
-SELECT acoustid_fingerprint_decode(E'\\x0100000b499224919224c992083fee4338bee3177ec381f00b8010710e0022884100'::bytea)
-                                           acoustid_fingerprint_decode                                           
+SELECT acoustid_fingerprint_decode_binary(E'\\x0100000b499224919224c992083fee4338bee3177ec381f00b8010710e0022884100'::bytea);
+                                       acoustid_fingerprint_decode_binary                                        
 -----------------------------------------------------------------------------------------------------------------
  {198178303,198047167,164426175,164426173,164417981,156103101,156201469,151941501,151941405,151941407,157184799}
+(1 row)
+
+SELECT acoustid_fingerprint_encode(acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA'));
+          acoustid_fingerprint_encode           
+------------------------------------------------
+ AAAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA
+(1 row)
+
+SELECT acoustid_fingerprint_encode_binary(acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA'));
+                   acoustid_fingerprint_encode_binary                   
+------------------------------------------------------------------------
+ \x0000000b499224919224c992083fee4338bee3177ec381f00b8010710e0022884100
 (1 row)
 

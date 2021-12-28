@@ -10,10 +10,62 @@
 
 #include "utils/builtins.h"
 
-PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_text);
-PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_bytea);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_encode_to_text);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_encode_to_bytea);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_from_text);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_from_bytea);
 
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
+
+void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len) {
+    uint8_t *ptr;
+    int i, num_terms;
+
+    StringInfoData normal_bits;
+    StringInfoData exceptional_bits;
+
+    initStringInfo(&normal_bits);
+    initStringInfo(&exceptional_bits);
+
+    num_terms = FINGERPRINT_NTERMS(fp);
+
+    for (i = 0; i < num_terms; i++) {
+        int bit = 1, last_bit = 0;
+        uint32_t term = (i == 0) ? FINGERPRINT_TERM(fp, i) : (FINGERPRINT_TERM(fp, i) ^ FINGERPRINT_TERM(fp, i - 1));
+        while (term) {
+            if ((term & 1) != 0) {
+                int value = bit - last_bit;
+                if (value >= MAX_NORMAL_BIT_VALUE) {
+                    appendStringInfoChar(&normal_bits, MAX_NORMAL_BIT_VALUE);
+                    appendStringInfoChar(&exceptional_bits, value - MAX_NORMAL_BIT_VALUE);
+                } else {
+                    appendStringInfoChar(&normal_bits, value);
+                }
+                last_bit = bit;
+            }
+            term >>= 1;
+            bit++;
+        }
+        appendStringInfoChar(&normal_bits, 0);
+    }
+
+    *output_len = 4 + GetPackedInt3ArraySize(normal_bits.len) + GetPackedInt5ArraySize(exceptional_bits.len);
+    *output = palloc0(*output_len);
+
+    ptr = *output;
+
+    ptr[0] = 0;
+    ptr[1] = (num_terms >> 16) & 255;
+    ptr[2] = (num_terms >> 8) & 255;
+    ptr[3] = (num_terms)&255;
+    ptr += 4;
+
+    ptr = PackInt3Array((const uint8_t *)normal_bits.data, (const uint8_t *)normal_bits.data + normal_bits.len, ptr);
+    ptr = PackInt5Array((const uint8_t *)exceptional_bits.data,
+                        (const uint8_t *)exceptional_bits.data + exceptional_bits.len, ptr);
+
+    *output_len = ptr - *output;
+}
 
 Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *version) {
     Fingerprint *fp;
@@ -116,7 +168,67 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
     return fp;
 }
 
-Datum acoustid_fingerprint_decode_text(PG_FUNCTION_ARGS) {
+Datum acoustid_fingerprint_encode_to_bytea(PG_FUNCTION_ARGS) {
+    Fingerprint *input = PG_GETARG_FINGERPRINT_P(0);
+    bytea *result;
+    uint8_t *encoded;
+    size_t encoded_len;
+
+    encode_fingerprint(input, &encoded, &encoded_len);
+
+    result = (bytea *)palloc(VARHDRSZ + encoded_len);
+    SET_VARSIZE(result, VARHDRSZ + encoded_len);
+    memcpy(VARDATA(result), encoded, encoded_len);
+
+    pfree(encoded);
+
+    PG_FREE_IF_COPY(input, 0);
+
+    PG_RETURN_BYTEA_P(result);
+}
+
+Datum acoustid_fingerprint_encode_to_text(PG_FUNCTION_ARGS) {
+    Fingerprint *input = PG_GETARG_FINGERPRINT_P(0);
+    text *result;
+    char *result_data_end;
+    uint8_t *encoded;
+    size_t encoded_len, result_len;
+
+    encode_fingerprint(input, &encoded, &encoded_len);
+
+    result_len = GetBase64EncodedSize(encoded_len);
+    result = (text *)palloc(VARHDRSZ + result_len);
+
+    result_data_end = Base64Encode(encoded, encoded + encoded_len, VARDATA(result), 1);
+    result_len = result_data_end - VARDATA(result);
+    SET_VARSIZE(result, VARHDRSZ + result_len);
+
+    pfree(encoded);
+
+    PG_FREE_IF_COPY(input, 0);
+
+    PG_RETURN_TEXT_P(result);
+}
+
+Datum acoustid_fingerprint_decode_from_bytea(PG_FUNCTION_ARGS) {
+    bytea *input_bytea;
+    unsigned char *bytes;
+    size_t bytes_len;
+    Fingerprint *fp;
+
+    input_bytea = PG_GETARG_BYTEA_PP(0);
+
+    bytes = (unsigned char *)VARDATA_ANY(input_bytea);
+    bytes_len = VARSIZE_ANY_EXHDR(input_bytea);
+
+    fp = decode_fingerprint(bytes, bytes_len, NULL);
+
+    PG_FREE_IF_COPY(input_bytea, 0);
+
+    PG_RETURN_FINGERPRINT_P(fp);
+}
+
+Datum acoustid_fingerprint_decode_from_text(PG_FUNCTION_ARGS) {
     text *input_text;
     const char *str;
     unsigned char *tmp_bytes, *tmp_bytes_end;
@@ -138,24 +250,6 @@ Datum acoustid_fingerprint_decode_text(PG_FUNCTION_ARGS) {
     pfree(tmp_bytes);
 
     PG_FREE_IF_COPY(input_text, 0);
-
-    PG_RETURN_FINGERPRINT_P(fp);
-}
-
-Datum acoustid_fingerprint_decode_bytea(PG_FUNCTION_ARGS) {
-    bytea *input_bytea;
-    unsigned char *bytes;
-    size_t bytes_len;
-    Fingerprint *fp;
-
-    input_bytea = PG_GETARG_BYTEA_PP(0);
-
-    bytes = (unsigned char *)VARDATA_ANY(input_bytea);
-    bytes_len = VARSIZE_ANY_EXHDR(input_bytea);
-
-    fp = decode_fingerprint(bytes, bytes_len, NULL);
-
-    PG_FREE_IF_COPY(input_bytea, 0);
 
     PG_RETURN_FINGERPRINT_P(fp);
 }
