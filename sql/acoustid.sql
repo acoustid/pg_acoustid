@@ -18,3 +18,7 @@ SELECT acoustid_fingerprint_decode_binary(E'\\x0100000b499224919224c992083fee433
 
 SELECT acoustid_fingerprint_encode(acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA'));
 SELECT acoustid_fingerprint_encode_binary(acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA'));
+
+INSERT INTO test_acoustid_fingerprint (fingerprint) VALUES (acoustid_fingerprint_decode('AQAAC0mSJJGSJMmSCD_uQzi-4xd-w4HwC4AQcQ4AIohBAA'));
+
+SELECT * FROM test_acoustid_fingerprint;
