@@ -1,0 +1,18 @@
+SELECT acoustid_fingerprint_decode('');
+ERROR:  Invalid fingerprint (shorter than 4 bytes)
+SELECT acoustid_fingerprint_decode('AQAAAA');
+ acoustid_fingerprint_decode 
+-----------------------------
+ {}
+(1 row)
+
+SELECT acoustid_fingerprint_decode('AQAAA0mSJJGSJMm');
+ERROR:  Invalid fingerprint (too short, not enough input for normal bits)
+SELECT acoustid_fingerprint_decode('AQAAA0mSJJGSJMmSCD_uA4AQ');
+ERROR:  Invalid fingerprint (too short, not enough input for exceptional bits)
+SELECT acoustid_fingerprint_decode('AQAAA0mSJJGSJMmSCD_uA4AQAQ');
+   acoustid_fingerprint_decode   
+---------------------------------
+ {198178303,198047167,164426175}
+(1 row)
+
