@@ -84,6 +84,10 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
         return NULL;
     }
 
+    for (i = 0; i < num_bits; i++) {
+        elog(DEBUG5, "decode_fingerprint: bits[%d]=%d", i, bits[i]);
+    }
+
     if (num_exceptional_bits > 0) {
         // Estimate the number of exceptional bits stored in the packed fingerprint
         exceptional_bits =
@@ -95,14 +99,11 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
         // Add the exceptional bits to the normal bits
         for (i = 0, j = 0; i < num_bits && j < num_exceptional_bits; i++) {
             if (bits[i] == MAX_NORMAL_BIT_VALUE) {
+                elog(DEBUG5, "decode_fingerprint: bits[%d] += exceptional_bits[%d]=%d", i, j, exceptional_bits[j]);
                 bits[i] += exceptional_bits[j++];
             }
         }
         pfree(exceptional_bits);
-    }
-
-    for (i = 0; i < num_bits; i++) {
-        elog(DEBUG5, "decode_fingerprint: bits[%d]=%d", i, bits[i]);
     }
 
     fp = create_empty_fingerprint(num_terms);
