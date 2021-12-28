@@ -11,9 +11,7 @@
 
 inline size_t GetUnpackedInt3ArraySize(size_t size) { return size * 8 / 3; }
 
-inline unsigned char *UnpackInt3Array(const unsigned char *first,
-                                      const unsigned char *last,
-                                      unsigned char *dest) {
+inline unsigned char *UnpackInt3Array(const unsigned char *first, const unsigned char *last, unsigned char *dest) {
     ptrdiff_t size = last - first;
     const unsigned char *src = first;
     while (size >= 3) {

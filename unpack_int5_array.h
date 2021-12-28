@@ -11,9 +11,7 @@
 
 inline size_t GetUnpackedInt5ArraySize(size_t size) { return size * 8 / 5; }
 
-inline unsigned char *UnpackInt5Array(const unsigned char *first,
-                                      const unsigned char *last,
-                                      unsigned char *dest) {
+inline unsigned char *UnpackInt5Array(const unsigned char *first, const unsigned char *last, unsigned char *dest) {
     ptrdiff_t size = last - first;
     const unsigned char *src = first;
     while (size >= 5) {

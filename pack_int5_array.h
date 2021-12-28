@@ -11,9 +11,7 @@
 
 inline size_t GetPackedInt5ArraySize(size_t size) { return (size * 5 + 7) / 8; }
 
-inline unsigned char *PackInt5Array(const unsigned char *first,
-                                    const unsigned char *last,
-                                    unsigned char *dest) {
+inline unsigned char *PackInt5Array(const unsigned char *first, const unsigned char *last, unsigned char *dest) {
     ptrdiff_t size = last - first;
     const unsigned char *src = first;
     while (size >= 8) {
@@ -26,11 +24,9 @@ inline unsigned char *PackInt5Array(const unsigned char *first,
         const unsigned char s6 = *src++;
         const unsigned char s7 = *src++;
         *dest++ = (unsigned char)((s0 & 0x1f)) | ((s1 & 0x07) << 5);
-        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) |
-                  ((s3 & 0x01) << 7);
+        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) | ((s3 & 0x01) << 7);
         *dest++ = (unsigned char)((s3 & 0x1e) >> 1) | ((s4 & 0x0f) << 4);
-        *dest++ = (unsigned char)((s4 & 0x10) >> 4) | ((s5 & 0x1f) << 1) |
-                  ((s6 & 0x03) << 6);
+        *dest++ = (unsigned char)((s4 & 0x10) >> 4) | ((s5 & 0x1f) << 1) | ((s6 & 0x03) << 6);
         *dest++ = (unsigned char)((s6 & 0x1c) >> 2) | ((s7 & 0x1f) << 3);
         size -= 8;
     }
@@ -43,11 +39,9 @@ inline unsigned char *PackInt5Array(const unsigned char *first,
         const unsigned char s5 = *src++;
         const unsigned char s6 = *src++;
         *dest++ = (unsigned char)((s0 & 0x1f)) | ((s1 & 0x07) << 5);
-        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) |
-                  ((s3 & 0x01) << 7);
+        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) | ((s3 & 0x01) << 7);
         *dest++ = (unsigned char)((s3 & 0x1e) >> 1) | ((s4 & 0x0f) << 4);
-        *dest++ = (unsigned char)((s4 & 0x10) >> 4) | ((s5 & 0x1f) << 1) |
-                  ((s6 & 0x03) << 6);
+        *dest++ = (unsigned char)((s4 & 0x10) >> 4) | ((s5 & 0x1f) << 1) | ((s6 & 0x03) << 6);
         *dest++ = (unsigned char)((s6 & 0x1c) >> 2);
     } else if (size == 6) {
         const unsigned char s0 = *src++;
@@ -57,8 +51,7 @@ inline unsigned char *PackInt5Array(const unsigned char *first,
         const unsigned char s4 = *src++;
         const unsigned char s5 = *src++;
         *dest++ = (unsigned char)((s0 & 0x1f)) | ((s1 & 0x07) << 5);
-        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) |
-                  ((s3 & 0x01) << 7);
+        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) | ((s3 & 0x01) << 7);
         *dest++ = (unsigned char)((s3 & 0x1e) >> 1) | ((s4 & 0x0f) << 4);
         *dest++ = (unsigned char)((s4 & 0x10) >> 4) | ((s5 & 0x1f) << 1);
     } else if (size == 5) {
@@ -68,8 +61,7 @@ inline unsigned char *PackInt5Array(const unsigned char *first,
         const unsigned char s3 = *src++;
         const unsigned char s4 = *src++;
         *dest++ = (unsigned char)((s0 & 0x1f)) | ((s1 & 0x07) << 5);
-        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) |
-                  ((s3 & 0x01) << 7);
+        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) | ((s3 & 0x01) << 7);
         *dest++ = (unsigned char)((s3 & 0x1e) >> 1) | ((s4 & 0x0f) << 4);
         *dest++ = (unsigned char)((s4 & 0x10) >> 4);
     } else if (size == 4) {
@@ -78,8 +70,7 @@ inline unsigned char *PackInt5Array(const unsigned char *first,
         const unsigned char s2 = *src++;
         const unsigned char s3 = *src++;
         *dest++ = (unsigned char)((s0 & 0x1f)) | ((s1 & 0x07) << 5);
-        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) |
-                  ((s3 & 0x01) << 7);
+        *dest++ = (unsigned char)((s1 & 0x18) >> 3) | ((s2 & 0x1f) << 2) | ((s3 & 0x01) << 7);
         *dest++ = (unsigned char)((s3 & 0x1e) >> 1);
     } else if (size == 3) {
         const unsigned char s0 = *src++;
