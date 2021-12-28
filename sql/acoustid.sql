@@ -1,6 +1,6 @@
 CREATE EXTENSION acoustid;
 
-SET client_min_messages TO DEBUG5;
+SET client_min_messages TO INFO;
 
 SELECT '{1,2,3}'::acoustid_fingerprint;
 

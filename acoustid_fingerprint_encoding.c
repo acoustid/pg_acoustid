@@ -2,12 +2,11 @@
 
 #include "acoustid_fingerprint_encoding.h"
 
+#include "base64.h"
 #include "pack_int3_array.h"
 #include "pack_int5_array.h"
 #include "unpack_int3_array.h"
 #include "unpack_int5_array.h"
-
-#include "urlsafe_base64.h"
 
 #include "utils/builtins.h"
 
@@ -135,23 +134,19 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
 Datum acoustid_fingerprint_decode(PG_FUNCTION_ARGS) {
     text *input;
     const char *str;
-    unsigned char *bytes;
-    int str_len, bytes_len, ret;
+    unsigned char *bytes, *bytes_end;
+    int str_len, bytes_len;
     Fingerprint *fp;
 
     input = PG_GETARG_TEXT_P(0);
     str = text_to_cstring(input);
     str_len = strlen(str);
 
-    bytes_len = urlsafe_b64_dec_len(str_len);
-    bytes = palloc0(bytes_len);
+    bytes_len = GetBase64DecodedSize(str_len);
+    bytes = palloc(bytes_len);
 
-    ret = urlsafe_b64_decode(str, str_len, (char *) bytes, bytes_len);
-    if (ret < 0) {
-        pfree(bytes);
-        elog(ERROR, "Invalid fingerprint (invalid base64)");
-        PG_RETURN_NULL();
-    }
+    bytes_end = Base64Decode(str, str + str_len, bytes);
+    bytes_len = bytes_end - bytes;
 
     fp = decode_fingerprint(bytes, bytes_len, NULL);
     pfree(bytes);

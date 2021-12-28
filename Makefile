@@ -3,8 +3,7 @@ OBJS = \
 	   acoustid.o \
 	   acoustid_fingerprint_type.o \
 	   acoustid_fingerprint_encoding.o \
-	   acoustid_compare.o \
-	   urlsafe_base64.o
+	   acoustid_compare.o
 
 EXTENSION = acoustid
 DATA = acoustid--1.0.sql acoustid--1.0--1.1.sql acoustid--unpackaged--1.0.sql
