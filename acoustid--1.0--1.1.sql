@@ -20,6 +20,11 @@ RETURNS bytea
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION acoustid_fingerprint_decode(text)
+RETURNS acoustid_fingerprint
+AS 'MODULE_PATHNAME'
+LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TYPE acoustid_fingerprint (
     INPUT = acoustid_fingerprint_in,
     OUTPUT = acoustid_fingerprint_out,

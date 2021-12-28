@@ -23,6 +23,8 @@ typedef struct {
 #define FINGERPRINT_NTERMS(fp) ((VARSIZE(fp) - VARHDRSZ) / sizeof(uint32))
 #define FINGERPRINT_TERM(fp, i) ((fp)->terms[i])
 
+Fingerprint *create_empty_fingerprint(int nterms);
+
 Fingerprint *create_fingerprint_from_str(char *str);
 void fingerprint_to_str(Fingerprint *fp, StringInfo buf);
 

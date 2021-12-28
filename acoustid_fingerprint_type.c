@@ -9,6 +9,14 @@ PG_FUNCTION_INFO_V1(acoustid_fingerprint_out);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_recv);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_send);
 
+Fingerprint *create_empty_fingerprint(int num_terms)
+{
+    Fingerprint *fp;
+    fp = palloc(FINGERPRINT_SIZE(num_terms));
+    SET_VARSIZE(fp, FINGERPRINT_SIZE(num_terms));
+    return fp;
+}
+
 // Parse comma-separated list of 32-bit integers enclosed in braces, e.g.
 // "{1,2,3}"
 Fingerprint *create_fingerprint_from_str(char *str) {
@@ -34,7 +42,7 @@ Fingerprint *create_fingerprint_from_str(char *str) {
     }
 
     // Allocate the fingerprint structure
-    fp = palloc(FINGERPRINT_SIZE(num_terms));
+    fp = create_empty_fingerprint(num_terms);
 
     // Parse the fingerprint string and extract all terms
     for (it = str + 1, num_terms = 0; *it != '\0'; it++) {
@@ -70,8 +78,7 @@ Fingerprint *create_fingerprint_from_bytes(StringInfo buf) {
     Fingerprint *fp;
     int i, num_terms;
     num_terms = pq_getmsgint(buf, sizeof(uint32));
-    fp = palloc(FINGERPRINT_SIZE(num_terms));
-    SET_VARSIZE(fp, FINGERPRINT_SIZE(num_terms));
+    fp = create_empty_fingerprint(num_terms);
     for (i = 0; i < num_terms; i++) {
         FINGERPRINT_TERM(fp, i) = pq_getmsgint(buf, sizeof(uint32));
     }
