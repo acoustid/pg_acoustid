@@ -20,7 +20,7 @@ Fingerprint *decode_fingerprint(StringInfo buf, int *version) {
     int i, j, num_terms, num_bits, num_exceptional_bits, found_terms, bit,
         last_bit;
     uint32_t term, last_term;
-    const int8 *header;
+    const char *header;
     unsigned char *bits, *exceptional_bits;
 
     if (buf->cursor + 4 > buf->len) {
