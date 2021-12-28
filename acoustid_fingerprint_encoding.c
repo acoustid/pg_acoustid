@@ -101,6 +101,10 @@ Fingerprint *decode_fingerprint(const unsigned char *input, int input_len, int *
         pfree(exceptional_bits);
     }
 
+    for (i = 0; i < num_bits; i++) {
+        elog(DEBUG5, "decode_fingerprint: bits[%d]=%d", i, bits[i]);
+    }
+
     fp = create_empty_fingerprint(num_terms);
 
     // Unpack the bits into fingerprint terms
