@@ -144,7 +144,7 @@ Datum acoustid_fingerprint_decode(PG_FUNCTION_ARGS) {
     str_len = strlen(str);
 
     bytes_len = urlsafe_b64_dec_len(str_len);
-    bytes = palloc(bytes_len);
+    bytes = palloc0(bytes_len);
 
     ret = urlsafe_b64_decode(str, str_len, (char *) bytes, bytes_len);
     if (ret < 0) {
