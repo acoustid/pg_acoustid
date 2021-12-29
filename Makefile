@@ -8,7 +8,9 @@ OBJS = \
 	   pack_int5_array.o \
 	   unpack_int3_array.o \
 	   unpack_int5_array.o \
-	   base64.o
+	   base64.o \
+	   uint8_vector.o \
+	   encode_fingerprint.o
 
 EXTENSION = acoustid
 DATA = acoustid--1.0.sql acoustid--1.0--1.1.sql acoustid--unpackaged--1.0.sql

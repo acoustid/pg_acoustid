@@ -1,16 +1,16 @@
 #ifndef PG_ACOUSTID_FINGERPRINT_TYPE_H_
 #define PG_ACOUSTID_FINGERPRINT_TYPE_H_
 
-#include "postgres.h"
-#include "fmgr.h"
-#include "lib/stringinfo.h"
+#include "common.h"
+
+typedef struct StringInfoData StringInfoData;
 
 typedef struct {
     /* varlena header (do not touch directly!) */
     char vl_len_[4];
 
     /* fingerprint terms */
-    uint32 terms[FLEXIBLE_ARRAY_MEMBER];
+    uint32_t terms[FLEXIBLE_ARRAY_MEMBER];
 } Fingerprint;
 
 /* fmgr interface macros */
@@ -26,10 +26,10 @@ typedef struct {
 Fingerprint *create_empty_fingerprint(int nterms);
 
 Fingerprint *create_fingerprint_from_str(char *str);
-void fingerprint_to_str(Fingerprint *fp, StringInfo buf);
+void fingerprint_to_str(Fingerprint *fp, StringInfoData *buf);
 
-Fingerprint *create_fingerprint_from_bytes(StringInfo buf);
-void fingerprint_to_bytes(Fingerprint *fp, StringInfo buf);
+Fingerprint *create_fingerprint_from_bytes(StringInfoData *buf);
+void fingerprint_to_bytes(Fingerprint *fp, StringInfoData *buf);
 
 Datum acoustid_fingerprint_in(PG_FUNCTION_ARGS);
 Datum acoustid_fingerprint_out(PG_FUNCTION_ARGS);
