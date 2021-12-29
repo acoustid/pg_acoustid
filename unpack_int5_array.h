@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-inline size_t GetUnpackedInt5ArraySize(size_t size) { return size * 8 / 5; }
+#define GetUnpackedInt5ArraySize(size) ((size) * 8 / 5)
 
 unsigned char *UnpackInt5Array(const unsigned char *first, const unsigned char *last, unsigned char *dest);
 

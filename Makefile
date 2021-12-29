@@ -10,6 +10,7 @@ OBJS = \
 	   unpack_int5_array.o \
 	   base64.o \
 	   uint8_vector.o \
+	   fingerprint.o \
 	   encode_fingerprint.o
 
 EXTENSION = acoustid

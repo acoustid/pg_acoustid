@@ -82,7 +82,7 @@ Fingerprint *decode_fingerprint(const uint8_t *input, size_t input_len, int *ver
     if (version) {
         *version = header[0];
     }
-    num_terms = ((uint32)header[1] << 16) | ((uint32)header[2] << 8) | header[3];
+    num_terms = ((uint32_t)header[1] << 16) | ((uint32_t)header[2] << 8) | header[3];
 
     // Estimate the number of bits stored in the packed fingerprint
     num_bits = GetUnpackedInt3ArraySize(input_len - cursor);

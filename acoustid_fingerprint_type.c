@@ -1,21 +1,11 @@
 /* acoustid_fingerprint_type.c */
 
-#include "acoustid_fingerprint_type.h"
-
-#include "libpq/pqformat.h"
+#include "acoustid.h"
 
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_in);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_out);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_recv);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_send);
-
-Fingerprint *create_empty_fingerprint(int num_terms)
-{
-    Fingerprint *fp;
-    fp = palloc(FINGERPRINT_SIZE(num_terms));
-    SET_VARSIZE(fp, FINGERPRINT_SIZE(num_terms));
-    return fp;
-}
 
 // Parse comma-separated list of 32-bit integers enclosed in braces, e.g.
 // "{1,2,3}"

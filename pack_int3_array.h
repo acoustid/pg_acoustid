@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-inline size_t GetPackedInt3ArraySize(size_t size) { return (size * 3 + 7) / 8; }
+#define GetPackedInt3ArraySize(size) (((size) * 3 + 7) / 8)
 
 unsigned char *PackInt3Array(const unsigned char *first, const unsigned char *last, unsigned char *dest);
 

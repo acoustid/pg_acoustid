@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-inline size_t GetPackedInt5ArraySize(size_t size) { return (size * 5 + 7) / 8; }
+#define GetPackedInt5ArraySize(size) (((size) * 5 + 7) / 8)
 
 unsigned char *PackInt5Array(const unsigned char *first, const unsigned char *last, unsigned char *dest);
 

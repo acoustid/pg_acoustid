@@ -1,6 +1,5 @@
 #include "uint8_vector.h"
-
-#include "common.h"
+#include "acoustid.h"
 
 void uint8_vector_alloc(UInt8Vector *v, size_t capacity) {
     v->data = palloc(capacity * sizeof(uint8_t));
