@@ -1,6 +1,6 @@
 /* acoustid_fingerprint_encoding.c */
 
-#include "acoustid_fingerprint_encoding.h"
+#include "acoustid.h"
 
 #include "encode_fingerprint.h"
 #include "base64.h"
@@ -11,15 +11,17 @@ PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_from_text);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_decode_from_bytea);
 
 Datum acoustid_fingerprint_encode_to_bytea(PG_FUNCTION_ARGS) {
-    Fingerprint *input = PG_GETARG_FINGERPRINT_P(0);
+    FingerprintType *input = PG_GETARG_FINGERPRINT_P(0);
     bytea *result;
-    uint8_t *encoded;
-    size_t encoded_len;
+    uint8_t *encoded_data;
+    size_t encoded_size;
 
-    encode_fingerprint(input, &encoded, &encoded_len, VARHDRSZ);
+    encoded_data = (uint8_t *) VARDATA(input);
+    encoded_size = VARSIZE(input) - VARHDRSZ;
 
-    result = (bytea *)encoded;
-    SET_VARSIZE(result, VARHDRSZ + encoded_len);
+    result = (bytea *) palloc(encoded_size + VARHDRSZ);
+    memcpy(VARDATA(result), encoded_data, encoded_size);
+    SET_VARSIZE(result, encoded_size + VARHDRSZ);
 
     PG_FREE_IF_COPY(input, 0);
 
@@ -27,22 +29,20 @@ Datum acoustid_fingerprint_encode_to_bytea(PG_FUNCTION_ARGS) {
 }
 
 Datum acoustid_fingerprint_encode_to_text(PG_FUNCTION_ARGS) {
-    Fingerprint *input = PG_GETARG_FINGERPRINT_P(0);
+    FingerprintType *input = PG_GETARG_FINGERPRINT_P(0);
     text *result;
     char *result_data_end;
-    uint8_t *encoded;
-    size_t encoded_len, result_len;
+    uint8_t *encoded_data;
+    size_t encoded_size, result_data_size;
 
-    encode_fingerprint(input, &encoded, &encoded_len, 0);
+    encoded_data = (uint8_t *) VARDATA(input);
+    encoded_size = VARSIZE(input) - VARHDRSZ;
 
-    result_len = GetBase64EncodedSize(encoded_len);
-    result = (text *)palloc(VARHDRSZ + result_len);
-
-    result_data_end = Base64Encode(encoded, encoded + encoded_len, VARDATA(result), 1);
-    result_len = result_data_end - VARDATA(result);
-    SET_VARSIZE(result, VARHDRSZ + result_len);
-
-    pfree(encoded);
+    result_data_size = GetBase64EncodedSize(encoded_size);
+    result = (text *) palloc(result_data_size);
+    result_data_end = Base64Encode(encoded_data, encoded_data + encoded_size, VARDATA(result), 0);
+    result_data_size = result_data_end - VARDATA(result);
+    SET_VARSIZE(result, result_data_size + VARHDRSZ);
 
     PG_FREE_IF_COPY(input, 0);
 
@@ -50,45 +50,51 @@ Datum acoustid_fingerprint_encode_to_text(PG_FUNCTION_ARGS) {
 }
 
 Datum acoustid_fingerprint_decode_from_bytea(PG_FUNCTION_ARGS) {
-    bytea *input_bytea;
-    uint8_t *bytes;
-    size_t bytes_len;
-    Fingerprint *fp;
+    bytea *input = PG_GETARG_BYTEA_PP(0);
+    FingerprintType *result;
+    FingerprintData *tmp_fp;
+    uint8_t *encoded_data;
+    size_t encoded_size;
 
-    input_bytea = PG_GETARG_BYTEA_PP(0);
+    encoded_data = (uint8_t *) VARDATA_ANY(input);
+    encoded_size = VARSIZE_ANY_EXHDR(input);
 
-    bytes = (uint8_t *)VARDATA_ANY(input_bytea);
-    bytes_len = VARSIZE_ANY_EXHDR(input_bytea);
+    // Just for validation
+    tmp_fp = decode_fingerprint(encoded_data, encoded_size);
+    pfree(tmp_fp);
 
-    fp = decode_fingerprint(bytes, bytes_len, NULL);
+    result = (FingerprintType *) palloc(encoded_size + VARHDRSZ);
+    memcpy(VARDATA(result), encoded_data, encoded_size);
+    SET_VARSIZE(result, encoded_size + VARHDRSZ);
 
-    PG_FREE_IF_COPY(input_bytea, 0);
+    PG_FREE_IF_COPY(input, 0);
 
-    PG_RETURN_FINGERPRINT_P(fp);
+    PG_RETURN_FINGERPRINT_P(result);
 }
 
 Datum acoustid_fingerprint_decode_from_text(PG_FUNCTION_ARGS) {
+    text *input = PG_GETARG_TEXT_PP(0);
+    FingerprintType *result;
+    FingerprintData *tmp_fp;
+    uint8_t *encoded_data, *encoded_data_end;
+    char *base64_encoded_data;
+    size_t encoded_size, base64_encoded_size;
     text *input_text;
-    const char *str;
-    uint8_t *tmp_bytes, *tmp_bytes_end;
-    size_t str_len, tmp_bytes_len;
-    Fingerprint *fp;
 
-    input_text = PG_GETARG_TEXT_PP(0);
+    base64_encoded_data = (char *) VARDATA_ANY(input);
+    base64_encoded_size = VARSIZE_ANY_EXHDR(input);
 
-    str = VARDATA_ANY(input_text);
-    str_len = VARSIZE_ANY_EXHDR(input_text);
+    encoded_size = GetBase64DecodedSize(base64_encoded_size);
+    result = (FingerprintType *) palloc(encoded_size + VARHDRSZ);
+    encoded_data = (uint8_t *) VARDATA(result);
+    encoded_data_end = Base64Decode(base64_encoded_data, base64_encoded_data + base64_encoded_size, encoded_data);
+    encoded_size = encoded_data_end - encoded_data;
+    SET_VARSIZE(result, encoded_size + VARHDRSZ);
 
-    tmp_bytes_len = GetBase64DecodedSize(str_len);
-    tmp_bytes = palloc(tmp_bytes_len);
+    tmp_fp = decode_fingerprint(encoded_data, encoded_size);
+    pfree(tmp_fp);
 
-    tmp_bytes_end = Base64Decode(str, str + str_len, tmp_bytes);
-    tmp_bytes_len = tmp_bytes_end - tmp_bytes;
+    PG_FREE_IF_COPY(input, 0);
 
-    fp = decode_fingerprint(tmp_bytes, tmp_bytes_len, NULL);
-    pfree(tmp_bytes);
-
-    PG_FREE_IF_COPY(input_text, 0);
-
-    PG_RETURN_FINGERPRINT_P(fp);
+    PG_RETURN_FINGERPRINT_P(result);
 }

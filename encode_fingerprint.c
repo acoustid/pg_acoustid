@@ -8,7 +8,7 @@
 
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
 
-void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len, size_t extra_header) {
+void encode_fingerprint(FingerprintData *fp, uint8_t **output, size_t *output_len, size_t extra_header) {
     uint8_t *ptr;
     uint32_t last_term;
     int i, num_terms;
@@ -16,7 +16,7 @@ void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len, s
     UInt8Vector normal_bits;
     UInt8Vector exceptional_bits;
 
-    num_terms = FINGERPRINT_NTERMS(fp);
+    num_terms = fp->size;
 
     uint8_vector_alloc(&normal_bits, num_terms);
     uint8_vector_alloc(&exceptional_bits, num_terms);
@@ -24,7 +24,7 @@ void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len, s
     last_term = 0;
     for (i = 0; i < num_terms; i++) {
         int bit = 1, last_bit = 0;
-        uint32_t term = FINGERPRINT_TERM(fp, i);
+        uint32_t term = fp->terms[i];
         uint32_t term_bits = term ^ last_term;
         last_term = term;
         while (term_bits) {
@@ -49,7 +49,7 @@ void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len, s
 
     ptr = *output + extra_header;
 
-    ptr[0] = 0;
+    ptr[0] = fp->version;
     ptr[1] = num_terms >> 16;
     ptr[2] = num_terms >> 8;
     ptr[3] = num_terms;
@@ -64,9 +64,9 @@ void encode_fingerprint(Fingerprint *fp, uint8_t **output, size_t *output_len, s
     *output_len = ptr - (*output + extra_header);
 }
 
-Fingerprint *decode_fingerprint(const uint8_t *input, size_t input_len, int *version) {
-    Fingerprint *fp;
-    int i, j, num_terms, num_bits, num_exceptional_bits, found_terms, bit, last_bit, cursor = 0;
+FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len) {
+    FingerprintData *fp;
+    int i, j, version, num_terms, num_bits, num_exceptional_bits, found_terms, bit, last_bit, cursor = 0;
     uint32_t term, last_term;
     const uint8_t *header;
     uint8_t *bits, *exceptional_bits;
@@ -78,11 +78,9 @@ Fingerprint *decode_fingerprint(const uint8_t *input, size_t input_len, int *ver
 
     // Read the header
     header = input + cursor;
-    cursor += 4;
-    if (version) {
-        *version = header[0];
-    }
+    version = header[0];
     num_terms = ((uint32_t)header[1] << 16) | ((uint32_t)header[2] << 8) | header[3];
+    cursor += 4;
 
     // Estimate the number of bits stored in the packed fingerprint
     num_bits = GetUnpackedInt3ArraySize(input_len - cursor);
@@ -140,7 +138,9 @@ Fingerprint *decode_fingerprint(const uint8_t *input, size_t input_len, int *ver
         pfree(exceptional_bits);
     }
 
-    fp = create_empty_fingerprint(num_terms);
+    fp = fingerprint_data_alloc(num_terms);
+    fp->version = version;
+    fp->size = num_terms;
 
     // Unpack the bits into fingerprint terms
     last_term = 0;
@@ -150,7 +150,7 @@ Fingerprint *decode_fingerprint(const uint8_t *input, size_t input_len, int *ver
         bit = bits[i];
         if (bit == 0) {
             last_term ^= term;
-            FINGERPRINT_TERM(fp, j) = last_term;
+            fp->terms[j] = last_term;
             last_bit = 0;
             term = 0;
             j++;

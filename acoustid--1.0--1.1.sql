@@ -1,22 +1,12 @@
 \echo Use "CREATE EXTENSION acoustid" to load this file. \quit
 
-CREATE OR REPLACE FUNCTION acoustid_fingerprint_in(cstring)
+CREATE OR REPLACE FUNCTION acoustid_fingerprint_type_in(cstring)
 RETURNS acoustid_fingerprint
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION acoustid_fingerprint_out(acoustid_fingerprint)
+CREATE OR REPLACE FUNCTION acoustid_fingerprint_type_out(acoustid_fingerprint)
 RETURNS cstring
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
-CREATE OR REPLACE FUNCTION acoustid_fingerprint_recv(internal)
-RETURNS acoustid_fingerprint
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
-CREATE OR REPLACE FUNCTION acoustid_fingerprint_send(acoustid_fingerprint)
-RETURNS bytea
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
@@ -40,11 +30,14 @@ RETURNS bytea
 AS 'MODULE_PATHNAME', 'acoustid_fingerprint_encode_to_bytea'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
+-- CREATE OR REPLACE FUNCTION acoustid_fingerprint(int4, int4[])
+-- RETURNS acoustid_fingerprint
+-- AS 'MODULE_PATHNAME', 'acoustid_fingerprint_from_int4array'
+-- LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
 CREATE TYPE acoustid_fingerprint (
-    INPUT = acoustid_fingerprint_in,
-    OUTPUT = acoustid_fingerprint_out,
-    RECEIVE = acoustid_fingerprint_recv,
-    SEND = acoustid_fingerprint_send,
+    INPUT = acoustid_fingerprint_type_in,
+    OUTPUT = acoustid_fingerprint_type_out,
     INTERNALLENGTH = VARIABLE,
     STORAGE = EXTERNAL
 );

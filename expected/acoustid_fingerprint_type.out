@@ -1,0 +1,63 @@
+CREATE EXTENSION acoustid;
+SELECT '{198178303,198047167,164426175}'::acoustid_fingerprint;
+      acoustid_fingerprint       
+---------------------------------
+ {198178303,198047167,164426175}
+(1 row)
+
+SELECT '{4294967295}'::acoustid_fingerprint;
+ acoustid_fingerprint 
+----------------------
+ {4294967295}
+(1 row)
+
+SELECT '{4294967295}v1'::acoustid_fingerprint;
+ acoustid_fingerprint 
+----------------------
+ {4294967295}v1
+(1 row)
+
+SELECT '{}'::acoustid_fingerprint;
+ acoustid_fingerprint 
+----------------------
+ {}
+(1 row)
+
+SELECT '1,2,3'::acoustid_fingerprint;
+ERROR:  Fingerprint string must start with '{'
+LINE 1: SELECT '1,2,3'::acoustid_fingerprint;
+               ^
+SELECT '{1,2,3'::acoustid_fingerprint;
+ERROR:  Fingerprint string must end with '}'
+LINE 1: SELECT '{1,2,3'::acoustid_fingerprint;
+               ^
+SELECT '{a}'::acoustid_fingerprint;
+ERROR:  Fingerprint string must contain only digits
+LINE 1: SELECT '{a}'::acoustid_fingerprint;
+               ^
+SELECT '1,2,3}'::acoustid_fingerprint;
+ERROR:  Fingerprint string must start with '{'
+LINE 1: SELECT '1,2,3}'::acoustid_fingerprint;
+               ^
+SELECT '{1, 2, 3}'::acoustid_fingerprint;
+ERROR:  Fingerprint string must not contain spaces
+LINE 1: SELECT '{1, 2, 3}'::acoustid_fingerprint;
+               ^
+CREATE TABLE test_table (
+    id SERIAL PRIMARY KEY,
+    fingerprint acoustid_fingerprint NOT NULL
+);
+INSERT INTO test_table (fingerprint) VALUES
+    ('{198178303,198047167,164426175}'),
+    ('{4294967295}'),
+    ('{4294967295}v1'),
+    ('{}');
+SELECT * FROM test_table;
+ id |           fingerprint           
+----+---------------------------------
+  1 | {198178303,198047167,164426175}
+  2 | {4294967295}
+  3 | {4294967295}v1
+  4 | {}
+(4 rows)
+
