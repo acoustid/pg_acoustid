@@ -1,0 +1,12 @@
+SELECT acoustid_fingerprint_encode_binary('{}v1'::acoustid_fingerprint);
+ acoustid_fingerprint_encode_binary 
+------------------------------------
+ \x01000000
+(1 row)
+
+SELECT acoustid_fingerprint_encode_binary('{198178303,198047167,164426175}v1'::acoustid_fingerprint);
+    acoustid_fingerprint_encode_binary    
+------------------------------------------
+ \x01000003499224919224c992083fee03801001
+(1 row)
+

@@ -1,0 +1,12 @@
+SELECT acoustid_fingerprint_encode('{}v1'::acoustid_fingerprint);
+ acoustid_fingerprint_encode 
+-----------------------------
+ AQAAAA
+(1 row)
+
+SELECT acoustid_fingerprint_encode('{198178303,198047167,164426175}v1'::acoustid_fingerprint);
+ acoustid_fingerprint_encode 
+-----------------------------
+ AQAAA0mSJJGSJMmSCD_uA4AQAQ
+(1 row)
+
