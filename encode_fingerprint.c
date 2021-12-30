@@ -8,9 +8,41 @@
 
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
 
-void encode_fingerprint(FingerprintData *fp, uint8_t **output, size_t *output_len, size_t extra_header) {
+ssize_t
+get_encoded_fingerprint_size(FingerprintData *fp)
+{
+    uint32_t last_term = 0;
+    int i, num_terms = fp->size, num_normal_bits = 0, num_exceptional_bits = 0;
+
+    for (int i = 0; i < num_terms; i++) {
+        int bit = 1, last_bit = 0;
+        uint32_t term = fp->terms[i];
+        uint32_t term_bits = term ^ last_term;
+        last_term = term;
+        while (term_bits) {
+            if ((term_bits & 1) != 0) {
+                int value = bit - last_bit;
+                if (value >= MAX_NORMAL_BIT_VALUE) {
+                    num_normal_bits++;
+                    num_exceptional_bits++;
+                } else {
+                    num_normal_bits++;
+                }
+                last_bit = bit;
+            }
+            term_bits >>= 1;
+            bit++;
+        }
+        num_normal_bits++;
+    }
+
+    return 4 + GetPackedInt3ArraySize(num_normal_bits) + GetPackedInt5ArraySize(num_exceptional_bits);
+}
+
+ssize_t encode_fingerprint(FingerprintData *fp, uint8_t *output, size_t output_size) {
     uint8_t *ptr;
     uint32_t last_term;
+    size_t encoded_size;
     int i, num_terms;
 
     UInt8Vector normal_bits;
@@ -44,11 +76,13 @@ void encode_fingerprint(FingerprintData *fp, uint8_t **output, size_t *output_le
         uint8_vector_push_back(&normal_bits, 0);
     }
 
-    *output_len = 4 + GetPackedInt3ArraySize(normal_bits.size) + GetPackedInt5ArraySize(exceptional_bits.size);
-    *output = palloc0(*output_len + extra_header);
+    encoded_size = 4 + GetPackedInt3ArraySize(normal_bits.size) + GetPackedInt5ArraySize(exceptional_bits.size);
+    if (output_size < encoded_size) {
+        elog(ERROR, "Output buffer is too small");
+        return -1;
+    }
 
-    ptr = *output + extra_header;
-
+    ptr = output ;
     ptr[0] = fp->version;
     ptr[1] = num_terms >> 16;
     ptr[2] = num_terms >> 8;
@@ -61,7 +95,7 @@ void encode_fingerprint(FingerprintData *fp, uint8_t **output, size_t *output_le
     uint8_vector_free(&normal_bits);
     uint8_vector_free(&exceptional_bits);
 
-    *output_len = ptr - (*output + extra_header);
+    return ptr - output;
 }
 
 FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len) {

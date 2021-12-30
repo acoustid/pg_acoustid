@@ -10,6 +10,7 @@
 #include "postgres.h"
 #include "fmgr.h"
 #include "utils/expandeddatum.h"
+#include "utils/memutils.h"
 #include "libpq/pqformat.h"
 #else
 #include "mock_postgres.h"
@@ -41,11 +42,14 @@ typedef struct {
  * that was the original input. Otherwise, it contains the fingerprint data
  * as an array of uint32_t values.
  */
-#define EP_MAGIC 922322027
+#define EF_MAGIC 922322027
 
 typedef struct ExpandedFingerprintHeader {
      /* Standard header for expanded objects */
      ExpandedObjectHeader hdr;
+
+        /* Magic number to detect corruption */
+        uint32_t ef_magic;
 
      /*
       * flat_size is the current space requirement for the flat equivalent of
@@ -73,6 +77,8 @@ typedef union AnyFingerprintType {
 
 #define PG_GETARG_FINGERPRINT_P(x) ((FingerprintType *) PG_DETOAST_DATUM(PG_GETARG_DATUM(x)))
 #define PG_RETURN_FINGERPRINT_P(x) PG_RETURN_POINTER(x)
+
+Datum make_expanded_fingerprint(FingerprintData *data, MemoryContext parentcontext);
 
 Datum acoustid_fingerprint_type_in(PG_FUNCTION_ARGS);
 Datum acoustid_fingerprint_type_out(PG_FUNCTION_ARGS);

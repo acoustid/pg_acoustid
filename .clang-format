@@ -1,3 +1,4 @@
+BasedOnStyle: GNU
 IndentWidth: 4
 SortIncludes: false
 ColumnLimit: 120

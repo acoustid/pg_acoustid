@@ -4,7 +4,8 @@
 #include "acoustid.h"
 #include "fingerprint.h"
 
-extern void encode_fingerprint(FingerprintData *fp, uint8_t **output, size_t *output_len, size_t extra_header);
+extern ssize_t get_encoded_fingerprint_size(FingerprintData *fp);
+extern ssize_t encode_fingerprint(FingerprintData *fp, uint8_t *output, size_t output_size);
 extern FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len);
 
 #endif
