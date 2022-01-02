@@ -1,0 +1,10 @@
+*.a
+*.o
+/CMakeCache.txt
+/CMakeFiles
+/Makefile
+/CTestTestfile.cmake
+/DartConfiguration.tcl
+/Testing
+/chromaprint_utils_tests
+/cmake_install.cmake
