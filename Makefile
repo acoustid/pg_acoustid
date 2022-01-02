@@ -4,8 +4,8 @@ OBJS = \
 	   utils/base64.o \
 	   utils/packed_uint3_array.o \
 	   utils/packed_uint5_array.o \
-	   fingerprint.o \
-	   main.o
+	   pg_acoustid_fingerprint.o \
+	   pg_acoustid.o
 
 PG_CPPFLAGS = -DHAVE_CONFIG_H
 
