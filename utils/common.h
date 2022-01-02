@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifndef CU_ASSERT
 #define CU_ASSERT(x) assert(x)
 #endif

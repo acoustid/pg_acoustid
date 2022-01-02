@@ -3,6 +3,7 @@
 
 #include "postgres.h"
 #include "fmgr.h"
+#include "utils/array.h"
 
 /*
  * PostgreSQL type for storing compressed fingerprints.
@@ -21,6 +22,9 @@ typedef ArrayType RawFingerprintType;
 
 #define PG_GETARG_FINGERPRINT_PP(n)						\
     ((FingerprintType *) PG_GETARG_BYTEA_PP(n))
+
+#define PG_RETURN_FINGERPRINT_P(x)						\
+    PG_RETURN_BYTEA_P(x)
 
 /* I/O functions for compressed fingerprints */
 extern Datum acoustid_fingerprint_in(PG_FUNCTION_ARGS);

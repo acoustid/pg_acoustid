@@ -1,13 +1,16 @@
 #include "pg_acoustid.h"
 #include "utils/base64.h"
 
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_in);
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_out);
+
 Datum
 acoustid_fingerprint_in(PG_FUNCTION_ARGS)
 {
     const char *encoded = PG_GETARG_CSTRING(0);
     size_t encoded_size, decoded_size;
-    char *decoded;
-    Fingerprint *result;
+    unsigned char *decoded;
+    FingerprintType *fingerprint;
 
     encoded_size = strlen(encoded);
     if (base64_validate(encoded, encoded_size) != 0) {
@@ -17,10 +20,32 @@ acoustid_fingerprint_in(PG_FUNCTION_ARGS)
     }
 
     decoded_size = get_base64_decoded_size(encoded_size);
-    result = palloc(decoded_size + VARHDRSZ);
-    SET_VARSIZE(result, decoded_size + VARHDRSZ);
-    decoded = VARDATA(result);
+    fingerprint = palloc(decoded_size + VARHDRSZ);
+    SET_VARSIZE(fingerprint, decoded_size + VARHDRSZ);
+    decoded = (unsigned char *) VARDATA(fingerprint);
+
     base64_decode(encoded, encoded_size, decoded, decoded_size);
 
-    PG_RETURN_FINGERPRINT_P(result);
+    PG_RETURN_FINGERPRINT_P(fingerprint);
+}
+
+Datum
+acoustid_fingerprint_out(PG_FUNCTION_ARGS)
+{
+    FingerprintType *fingerprint = PG_GETARG_FINGERPRINT_PP(0);
+    size_t encoded_size, decoded_size;
+    char *encoded;
+    unsigned char *decoded;
+
+    decoded_size = VARSIZE(fingerprint) - VARHDRSZ;
+    decoded = (unsigned char *) VARDATA(fingerprint);
+
+    encoded_size = get_base64_encoded_size(decoded_size);
+    encoded = palloc(encoded_size + 1);  /* +1 for null terminator */
+
+    base64_encode(decoded, decoded_size, encoded, encoded_size, 1);
+
+    PG_FREE_IF_COPY(fingerprint, 0);
+
+    PG_RETURN_CSTRING(encoded);
 }
