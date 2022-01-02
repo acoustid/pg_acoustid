@@ -30,9 +30,6 @@ typedef ArrayType RawFingerprintType;
 extern Datum acoustid_fingerprint_in(PG_FUNCTION_ARGS);
 extern Datum acoustid_fingerprint_out(PG_FUNCTION_ARGS);
 
-/* Cast acoustid_fingerprint to bytea */
-extern Datum acoustid_fingerprint_cast_to_bytea(PG_FUNCTION_ARGS);
-
 /* I/O functions for raw (uncompressed) fingerprints */
 extern Datum acoustid_raw_fingerprint_in(PG_FUNCTION_ARGS);
 extern Datum acoustid_raw_fingerprint_out(PG_FUNCTION_ARGS);

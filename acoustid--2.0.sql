@@ -10,11 +10,6 @@ RETURNS cstring
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION acoustid_fingerprint_cast_to_bytea(acoustid_fingerprint)
-RETURNS bytea
-AS 'MODULE_PATHNAME'
-LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
-
 -- Compressed fingerprint
 CREATE TYPE acoustid_fingerprint (
     INPUT = acoustid_fingerprint_in,
@@ -24,5 +19,5 @@ CREATE TYPE acoustid_fingerprint (
 );
 
 CREATE CAST (acoustid_fingerprint AS bytea)
-    WITH FUNCTION acoustid_fingerprint_cast_to_bytea(acoustid_fingerprint)
+    WITHOUT FUNCTION
     AS IMPLICIT;
