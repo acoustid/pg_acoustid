@@ -1,0 +1,33 @@
+#ifndef PG_ACOUSTID_H
+#define PG_ACOUSTID_H
+
+#include "postgres.h"
+#include "fmgr.h"
+
+/*
+ * PostgreSQL type for storing compressed fingerprints.
+ * It's a binary string stored as a bytea. It needs to be
+ * decompressed for any operation.
+ */
+typedef bytea FingerprintType;
+
+/*
+ * PostgreSQL type for storing raw (uncompressed) fingerprints.
+ */
+typedef ArrayType RawFingerprintType;
+
+#define PG_GETARG_FINGERPRINT_P(n)						\
+    ((FingerprintType *) PG_GETARG_BYTEA_P(n))
+
+#define PG_GETARG_FINGERPRINT_PP(n)						\
+    ((FingerprintType *) PG_GETARG_BYTEA_PP(n))
+
+/* I/O functions for compressed fingerprints */
+extern Datum acoustid_fingerprint_in(PG_FUNCTION_ARGS);
+extern Datum acoustid_fingerprint_out(PG_FUNCTION_ARGS);
+
+/* I/O functions for raw (uncompressed) fingerprints */
+extern Datum acoustid_raw_fingerprint_in(PG_FUNCTION_ARGS);
+extern Datum acoustid_raw_fingerprint_out(PG_FUNCTION_ARGS);
+
+#endif
