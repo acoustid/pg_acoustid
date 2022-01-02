@@ -9,3 +9,15 @@ SELECT 'AQAAO4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4sel4JGQrEda4YenG940o8h_JM4a
  AQAAO4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4sel4JGQrEda4YenG940o8h_JM4aw5_BH_dy_GiUFbW0oM2I5sgevHgLzUfjJEdJw6_Rj2De5PCHWjj64OLR5zjxo60M18I5wSt-AAWcMVA4JR4SxmigBEOOKAEFIIwIJoRgSgiLAAUEKAEGEkIRCwgCAA
 (1 row)
 
+SELECT CAST('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint AS bytea);
+                                                bytea                                                 
+------------------------------------------------------------------------------------------------------
+ \x010000138aa42551aa2881ff027fe1c31d7ea1f88b1e3f7efcd03502f513f0ae71e207059c315038251e12c668a004430e
+(1 row)
+
+SELECT CAST('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint AS text);
+                                text                                
+--------------------------------------------------------------------
+ AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg
+(1 row)
+

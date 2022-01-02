@@ -4,6 +4,8 @@
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_in);
 PG_FUNCTION_INFO_V1(acoustid_fingerprint_out);
 
+PG_FUNCTION_INFO_V1(acoustid_fingerprint_cast_to_bytea);
+
 Datum
 acoustid_fingerprint_in(PG_FUNCTION_ARGS)
 {
@@ -48,4 +50,18 @@ acoustid_fingerprint_out(PG_FUNCTION_ARGS)
     PG_FREE_IF_COPY(fingerprint, 0);
 
     PG_RETURN_CSTRING(encoded);
+}
+
+Datum
+acoustid_fingerprint_cast_to_bytea(PG_FUNCTION_ARGS)
+{
+    FingerprintType *fingerprint = PG_GETARG_FINGERPRINT_PP(0);
+    bytea *result;
+
+    result = (bytea *) palloc(VARSIZE(fingerprint));
+    memcpy(result, fingerprint, VARSIZE(fingerprint));
+
+    PG_FREE_IF_COPY(fingerprint, 0);
+
+    PG_RETURN_BYTEA_P(result);
 }
