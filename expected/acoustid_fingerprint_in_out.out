@@ -21,3 +21,15 @@ SELECT CAST('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'
  AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg
 (1 row)
 
+SELECT extract_version('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
+ extract_version 
+-----------------
+               1
+(1 row)
+
+SELECT extract_terms('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
+                                                                                               extract_terms                                                                                                
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678,1484897654,1485028854,2021900278,2021759732,2021759732,2034343652,1761842924,1761773292,1744995052}
+(1 row)
+

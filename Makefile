@@ -4,6 +4,7 @@ OBJS = \
 	   utils/base64.o \
 	   utils/packed_uint3_array.o \
 	   utils/packed_uint5_array.o \
+	   utils/fingerprint_compression.o \
 	   pg_acoustid_fingerprint.o \
 	   pg_acoustid.o
 

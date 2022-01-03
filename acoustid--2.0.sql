@@ -10,6 +10,16 @@ RETURNS cstring
 AS 'MODULE_PATHNAME'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
+CREATE OR REPLACE FUNCTION extract_version(acoustid_fingerprint)
+RETURNS int4
+AS 'MODULE_PATHNAME', 'acoustid_fingerprint_extract_version'
+LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
+CREATE OR REPLACE FUNCTION extract_terms(acoustid_fingerprint)
+RETURNS int4[]
+AS 'MODULE_PATHNAME', 'acoustid_fingerprint_extract_terms'
+LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
+
 -- Compressed fingerprint
 CREATE TYPE acoustid_fingerprint (
     INPUT = acoustid_fingerprint_in,
