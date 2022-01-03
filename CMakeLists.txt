@@ -13,6 +13,10 @@ endif()
 
 include(CTest)
 
+if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
+    add_definitions(-DNDEBUG)
+endif()
+
 set(chromaprint_utils_SOURCES
     base64.h
     base64.c
@@ -20,12 +24,15 @@ set(chromaprint_utils_SOURCES
     packed_uint3_array.c
     packed_uint5_array.h
     packed_uint5_array.c
+    fingerprint_compression.h
+    fingerprint_compression.c
 )
 
 set(chromaprint_utils_tests_SOURCES
     base64_test.cc
     packed_uint3_array_test.cc
     packed_uint5_array_test.cc
+    fingerprint_compression_test.cc
 )
 
 add_library(chromaprint_utils ${chromaprint_utils_SOURCES})
