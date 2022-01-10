@@ -1,5 +1,6 @@
 #include "pg_acoustid.h"
 
+#include "lib/stringinfo.h"
 #include "catalog/pg_type.h"
 
 PG_FUNCTION_INFO_V1(acoustid_raw_fingerprint_in);
