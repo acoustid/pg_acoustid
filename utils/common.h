@@ -45,4 +45,10 @@
 #define CU_LOG_ERROR(msg, ...) fprintf(stderr, msg, ##__VA_ARGS__); fprintf(stderr, "\n")
 #endif
 
+#ifdef __cplusplus
+#define CU_NOEXCEPT noexcept
+#else
+#define CU_NOEXCEPT
+#endif
+
 #endif /* CHROMAPRINT_UTILS_COMMON_H_ */

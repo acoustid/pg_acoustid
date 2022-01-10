@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.3)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 if (MSVC)
     add_compile_options(/W4 /WX)
@@ -18,6 +18,8 @@ if (NOT CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 set(chromaprint_utils_SOURCES
+    align_fingerprints.h
+    align_fingerprints.cpp
     base64.h
     base64.c
     packed_uint3_array.h
@@ -26,13 +28,21 @@ set(chromaprint_utils_SOURCES
     packed_uint5_array.c
     fingerprint_compression.h
     fingerprint_compression.c
+    fingerprint_matcher.h
+    fingerprint_matcher.c
 )
 
 set(chromaprint_utils_tests_SOURCES
     base64_test.cc
     packed_uint3_array_test.cc
     packed_uint5_array_test.cc
+    align_fingerprints_test.cpp
     fingerprint_compression_test.cc
+    numlib/base_test.cpp
+    numlib/gradient_test.cpp
+    numlib/convolve_test.cpp
+    numlib/window_test.cpp
+    numlib/minmax_test.cpp
 )
 
 add_library(chromaprint_utils ${chromaprint_utils_SOURCES})
