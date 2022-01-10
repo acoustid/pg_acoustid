@@ -1,4 +1,4 @@
-CREATE EXTENSION acoustid;
+CREATE EXTENSION IF NOT EXISTS acoustid;
 
 SELECT '13123@$#@!'::acoustid_fingerprint;
 
@@ -9,3 +9,5 @@ SELECT CAST('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'
 
 SELECT extract_version('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
 SELECT extract_terms('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
+
+SELECT uncompress('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
