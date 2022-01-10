@@ -111,7 +111,6 @@ int compressed_fingerprint_get_terms(const uint8_t *input, size_t input_size, ui
         }
     }
 
-    CU_ASSERT(i == num_bits);
     CU_ASSERT(j == num_terms);
 
     CU_FREE(bits);
