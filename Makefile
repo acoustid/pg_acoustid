@@ -5,6 +5,7 @@ OBJS = \
 	   utils/packed_uint3_array.o \
 	   utils/packed_uint5_array.o \
 	   utils/fingerprint_compression.o \
+	   utils/align_fingerprints.o \
 	   pg_acoustid_fingerprint.o \
 	   pg_acoustid.o
 
