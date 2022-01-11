@@ -1,6 +1,8 @@
 CREATE EXTENSION IF NOT EXISTS acoustid;
 SET client_min_messages TO DEBUG1;
 
+SHOW lc_numeric;
+
 SELECT '1.2345'::float4;
 
 SELECT aoffset FROM align_fingerprints(

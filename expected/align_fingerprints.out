@@ -1,6 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS acoustid;
 NOTICE:  extension "acoustid" already exists, skipping
 SET client_min_messages TO DEBUG1;
+SHOW lc_numeric;
+ lc_numeric 
+------------
+ C
+(1 row)
+
 SELECT '1.2345'::float4;
  float4 
 --------
