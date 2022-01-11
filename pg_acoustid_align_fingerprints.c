@@ -1,11 +1,10 @@
 #include "pg_acoustid.h"
 
-#include "utils/jsonb.h"
-#include "utils/numeric.h"
 #include "utils/fmgrprotos.h"
 #include "catalog/pg_type.h"
 #include "funcapi.h"
 #include "miscadmin.h"
+#include "access/htup_details.h"
 
 #include "utils/align_fingerprints.h"
 
