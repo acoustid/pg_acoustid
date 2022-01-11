@@ -43,7 +43,6 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
     terms2 = (uint32_t *) ARR_DATA_PTR(fp2);
 
     num_offsets = AlignFingerprints(terms1, num_terms1, terms2, num_terms2, offsets, scores, max_offsets, max_distance);
-    elog(INFO, "AlignFingerprints returned %ld offsets", num_offsets);
 
    	per_query_ctx = rsinfo->econtext->ecxt_per_query_memory;
 	oldcontext = MemoryContextSwitchTo(per_query_ctx);
