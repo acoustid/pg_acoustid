@@ -40,5 +40,6 @@ extern Datum acoustid_raw_fingerprint_out(PG_FUNCTION_ARGS);
 extern Datum acoustid_raw_fingerprint_extract_terms(PG_FUNCTION_ARGS);
 
 extern Datum acoustid_align_fingerprints(PG_FUNCTION_ARGS);
+extern Datum acoustid_match_fingerprints(PG_FUNCTION_ARGS);
 
 #endif
