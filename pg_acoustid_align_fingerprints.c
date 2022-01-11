@@ -75,7 +75,7 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
 	for (size_t i = 0; i < num_offsets; i++)
 	{
         values[0] = Int32GetDatum(offsets[i]);
-        values[1] = Float4GetDatum(offsets[i]);
+        values[1] = Float4GetDatum(int(scores[i]));
 
 		tuple = heap_form_tuple(tupdesc, values, isnull);
 		tuplestore_puttuple(tupstore, tuple);
