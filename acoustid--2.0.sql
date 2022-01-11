@@ -74,16 +74,20 @@ CREATE TYPE acoustid_fingerprint (
     LIKE = bytea
 );
 
-CREATE CAST (acoustid_fingerprint AS bytea)
-    WITHOUT FUNCTION
-    AS IMPLICIT;
-
 -- Raw uncompressed fingerprint
 CREATE TYPE acoustid_raw_fingerprint (
     INPUT = acoustid_raw_fingerprint_in,
     OUTPUT = acoustid_raw_fingerprint_out,
     LIKE = int4[]
 );
+
+CREATE CAST (acoustid_fingerprint AS bytea)
+    WITHOUT FUNCTION
+    AS IMPLICIT;
+
+CREATE CAST (acoustid_fingerprint AS acoustid_raw_fingerprint)
+    WITH FUNCTION uncompress(acoustid_fingerprint)
+    AS IMPLICIT;
 
 CREATE CAST (acoustid_raw_fingerprint AS int4[])
     WITH FUNCTION extract_terms(acoustid_raw_fingerprint)

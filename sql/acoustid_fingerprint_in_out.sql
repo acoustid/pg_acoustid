@@ -11,3 +11,5 @@ SELECT extract_version('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUe
 SELECT extract_terms('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
 
 SELECT uncompress('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint);
+
+SELECT CAST('AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint AS acoustid_raw_fingerprint);

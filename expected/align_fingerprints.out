@@ -62,3 +62,13 @@ DEBUG:  AlignFingerprints returned 1 results
       -2 |   19.30
 (1 row)
 
+SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
+    'AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint,
+    'AQAAE4qkJVGqKIH_An_hwx1-ofiLHj9-_NA1AvUT8K5x4gcFnDFQOCUeEsZooARDDg'::acoustid_fingerprint
+);
+DEBUG:  AlignFingerprints returned 1 results
+ aoffset | ascore  
+---------+---------
+       0 |   45.87
+(1 row)
+
