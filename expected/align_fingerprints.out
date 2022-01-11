@@ -1,9 +1,11 @@
 CREATE EXTENSION IF NOT EXISTS acoustid;
 NOTICE:  extension "acoustid" already exists, skipping
+SET client_min_messages TO DEBUG1;
 SELECT json_agg(row_to_json(r)) FROM align_fingerprints(
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 ) r;
+DEBUG:  AlignFingerprints returned 1 offsets
               json_agg              
 ------------------------------------
  [{"aoffset":0,"ascore":23.512262}]
@@ -13,6 +15,7 @@ SELECT * FROM align_fingerprints(
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
+DEBUG:  AlignFingerprints returned 1 offsets
  aoffset |  ascore   
 ---------+-----------
        0 | 23.512262
@@ -22,6 +25,7 @@ SELECT * FROM align_fingerprints(
     '{440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
+DEBUG:  AlignFingerprints returned 1 offsets
  aoffset |  ascore   
 ---------+-----------
       -1 | 20.626871
@@ -31,6 +35,7 @@ SELECT * FROM align_fingerprints(
     '{440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
+DEBUG:  AlignFingerprints returned 1 offsets
  aoffset |  ascore  
 ---------+----------
       -2 | 19.29642
