@@ -5,7 +5,7 @@ SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
-DEBUG:  AlignFingerprints returned 1 offsets
+DEBUG:  AlignFingerprints returned 1 results
  aoffset | ascore  
 ---------+---------
        0 |   23.51
@@ -15,7 +15,7 @@ SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
     '{440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
-DEBUG:  AlignFingerprints returned 1 offsets
+DEBUG:  AlignFingerprints returned 1 results
  aoffset | ascore  
 ---------+---------
       -1 |   20.63
@@ -25,7 +25,38 @@ SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
     '{440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
     '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint
 );
-DEBUG:  AlignFingerprints returned 1 offsets
+DEBUG:  AlignFingerprints returned 1 results
+ aoffset | ascore  
+---------+---------
+      -2 |   19.30
+(1 row)
+
+SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
+    '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    max_results := 0
+);
+DEBUG:  AlignFingerprints returned 0 results
+ aoffset | ascore 
+---------+--------
+(0 rows)
+
+SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
+    '{440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    max_distance := 1
+);
+DEBUG:  AlignFingerprints returned 0 results
+ aoffset | ascore 
+---------+--------
+(0 rows)
+
+SELECT aoffset, to_char(ascore, '999D99') AS ascore FROM align_fingerprints(
+    '{440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    '{994277718,440498550,440498550,180443510,180476246,180485494,193052022,193052006,1233231206,1501666678}'::acoustid_raw_fingerprint,
+    max_distance := 2
+);
+DEBUG:  AlignFingerprints returned 1 results
  aoffset | ascore  
 ---------+---------
       -2 |   19.30

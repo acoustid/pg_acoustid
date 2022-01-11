@@ -22,11 +22,12 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
 
     ArrayType *fp1 = PG_GETARG_ARRAYTYPE_P(0);
     ArrayType *fp2 = PG_GETARG_ARRAYTYPE_P(1);
-    size_t num_terms1, num_terms2, num_offsets;
+    size_t max_results = PG_GETARG_INT32(2);
+    int max_distance = PG_GETARG_INT32(3);
+    size_t num_terms1, num_terms2, num_results;
     uint32_t *terms1, *terms2;
-    const size_t max_offsets = 10;
-    int offsets[10], max_distance = -1;
-    float scores[10];
+    int *offsets;
+    float *scores;
     Datum values[2];
     bool isnull[2];
 
@@ -43,8 +44,11 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
     terms1 = (uint32_t *) ARR_DATA_PTR(fp1);
     terms2 = (uint32_t *) ARR_DATA_PTR(fp2);
 
-    num_offsets = AlignFingerprints(terms1, num_terms1, terms2, num_terms2, offsets, scores, max_offsets, max_distance);
-    elog(DEBUG1, "AlignFingerprints returned %ld offsets", num_offsets);
+    offsets = (int *) palloc(sizeof(int) * max_results);
+    scores = (float *) palloc(sizeof(float) * max_results);
+
+    num_results = AlignFingerprints(terms1, num_terms1, terms2, num_terms2, offsets, scores, max_results, max_distance);
+    elog(DEBUG1, "AlignFingerprints returned %ld results", num_results);
 
    	per_query_ctx = rsinfo->econtext->ecxt_per_query_memory;
 	oldcontext = MemoryContextSwitchTo(per_query_ctx);
@@ -72,7 +76,7 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
     isnull[0] = false;
     isnull[1] = false;
 
-	for (size_t i = 0; i < num_offsets; i++)
+	for (size_t i = 0; i < num_results; i++)
 	{
         values[0] = Int32GetDatum(offsets[i]);
         values[1] = Float4GetDatum(scores[i]);
@@ -93,6 +97,9 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
 	 */
 	rsinfo->setDesc = tupdesc;
 	MemoryContextSwitchTo(oldcontext); 
+
+    pfree(scores);
+    pfree(offsets);
 
     PG_FREE_IF_COPY(fp1, 0);
     PG_FREE_IF_COPY(fp2, 1);

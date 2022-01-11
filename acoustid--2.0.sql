@@ -40,7 +40,7 @@ RETURNS int4[]
 AS 'MODULE_PATHNAME', 'acoustid_raw_fingerprint_extract_terms'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
 
-CREATE OR REPLACE FUNCTION align_fingerprints(in acoustid_raw_fingerprint, in acoustid_raw_fingerprint, out aoffset int4, out ascore float4)
+CREATE OR REPLACE FUNCTION align_fingerprints(in a acoustid_raw_fingerprint, in b acoustid_raw_fingerprint, in max_results int4 default 10, in max_distance int4 default -1, out aoffset int4, out ascore float4)
 RETURNS setof record
 AS 'MODULE_PATHNAME', 'acoustid_align_fingerprints'
 LANGUAGE C IMMUTABLE STRICT PARALLEL SAFE;
