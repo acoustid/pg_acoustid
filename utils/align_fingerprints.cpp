@@ -65,7 +65,7 @@ void MergeExpandedTerms(const nb::Array<uint32_t> &terms1, const nb::Array<uint3
 size_t AlignFingerprintsImpl(
     const uint32_t *terms1, size_t num_terms1,
     const uint32_t *terms2, size_t num_terms2,
-    int *offsets, int *scores, size_t max_offsets,
+    int *offsets, float *scores, size_t max_offsets,
     int max_distance)
 {
     auto expanded_terms1 = ExpandTerms(terms1, num_terms1);
@@ -114,7 +114,7 @@ size_t AlignFingerprintsImpl(
 size_t AlignFingerprints(
     const uint32_t *terms1, size_t num_terms1,
     const uint32_t *terms2, size_t num_terms2,
-    int *offsets, int *scores, size_t max_offsets,
+    int *offsets, float *scores, size_t max_offsets,
     int max_distance) {
     try {
         return AlignFingerprintsImpl(terms1, num_terms1, terms2, num_terms2, offsets, scores, max_offsets, max_distance);

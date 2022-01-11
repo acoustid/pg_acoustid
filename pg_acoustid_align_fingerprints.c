@@ -24,7 +24,9 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
     ArrayType *fp2 = PG_GETARG_ARRAYTYPE_P(1);
     size_t num_terms1, num_terms2, num_offsets;
     uint32_t *terms1, *terms2;
-    int offsets[10], scores[10], max_offsets = 10, max_distance = -1;
+    const size_t max_offsets = 10;
+    int offsets[10], max_distance = -1;
+    float scores[10];
     Datum values[2];
     bool isnull[2];
 
@@ -54,7 +56,7 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
 	 */
 	if (tupdesc->natts != 2 ||
 		TupleDescAttr(tupdesc, 0)->atttypid != INT4OID ||
-		TupleDescAttr(tupdesc, 1)->atttypid != INT4OID)
+		TupleDescAttr(tupdesc, 1)->atttypid != FLOAT4OID)
 		ereport(ERROR,
 				(errcode(ERRCODE_SYNTAX_ERROR),
 				 errmsg("query-specified return tuple and "
@@ -72,7 +74,7 @@ acoustid_align_fingerprints(PG_FUNCTION_ARGS)
 	for (size_t i = 0; i < num_offsets; i++)
 	{
         values[0] = Int32GetDatum(offsets[i]);
-        values[1] = Int32GetDatum(scores[i]);
+        values[1] = Float4GetDatum(scores[i]);
 
 		tuple = heap_form_tuple(tupdesc, values, isnull);
 		tuplestore_puttuple(tupstore, tuple);
