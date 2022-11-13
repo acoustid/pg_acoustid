@@ -7,6 +7,18 @@
 #include "catalog/pg_type.h"
 #include "popcount.h"
 
+PG_FUNCTION_INFO_V1(acoustid_compare);
+Datum acoustid_compare(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(acoustid_compare2);
+Datum acoustid_compare2(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(acoustid_compare3);
+Datum acoustid_compare3(PG_FUNCTION_ARGS);
+
+PG_FUNCTION_INFO_V1(acoustid_extract_query);
+Datum acoustid_extract_query(PG_FUNCTION_ARGS);
+
 /* fingerprint matcher settings */
 #define ACOUSTID_MAX_BIT_ERROR 2
 #define ACOUSTID_MAX_ALIGN_OFFSET 120
@@ -23,20 +35,6 @@
 #define UNIQ_BITS 16
 #define UNIQ_MASK ((1 << MATCH_BITS) - 1)
 #define UNIQ_STRIP(x) ((uint32_t)(x) >> (32 - MATCH_BITS))
-
-PG_MODULE_MAGIC;
-
-PG_FUNCTION_INFO_V1(acoustid_compare);
-Datum       acoustid_compare(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_compare2);
-Datum       acoustid_compare2(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_compare3);
-Datum       acoustid_compare3(PG_FUNCTION_ARGS);
-
-PG_FUNCTION_INFO_V1(acoustid_extract_query);
-Datum       acoustid_extract_query(PG_FUNCTION_ARGS);
 
 /* dimension of array */
 #define NDIM 1
@@ -62,29 +60,10 @@ Datum       acoustid_extract_query(PG_FUNCTION_ARGS);
 
 #define ARRISVOID(x)  ((x) == NULL || ARRNELEMS(x) == 0)
 
-/* From http://en.wikipedia.org/wiki/Hamming_weight */
-
-const uint64_t m1  = 0x5555555555555555ULL; /* binary: 0101... */
-const uint64_t m2  = 0x3333333333333333ULL; /* binary: 00110011.. */
-const uint64_t m4  = 0x0f0f0f0f0f0f0f0fULL; /* binary:  4 zeros,  4 ones ... */
-const uint64_t m8  = 0x00ff00ff00ff00ffULL; /* binary:  8 zeros,  8 ones ... */
-const uint64_t m16 = 0x0000ffff0000ffffULL; /* binary: 16 zeros, 16 ones ... */
-const uint64_t m32 = 0x00000000ffffffffULL; /* binary: 32 zeros, 32 ones */
-const uint64_t hff = 0xffffffffffffffffULL; /* binary: all ones */
-const uint64_t h01 = 0x0101010101010101ULL; /* the sum of 256 to the power of 0,1,2,3... */
-
-inline static int
-popcount_3(uint64_t x)
-{
-	x -= (x >> 1) & m1;             /* put count of each 2 bits into those 2 bits */
-	x = (x & m2) + ((x >> 2) & m2); /* put count of each 4 bits into those 4 bits */
-	x = (x + (x >> 4)) & m4;        /* put count of each 8 bits into those 8 bits */
-	return (x * h01) >> 56;         /* returns left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...  */
-}
-
-#define BITCOUNT(x)  popcount_lookup8(x)
-#define BITCOUNT64(x)  popcount_3(x)
-
+Datum acoustid_compare(PG_FUNCTION_ARGS);
+Datum acoustid_compare2(PG_FUNCTION_ARGS);
+Datum acoustid_compare3(PG_FUNCTION_ARGS);
+Datum acoustid_extract_query(PG_FUNCTION_ARGS);
 
 static float4
 match_fingerprints(int32 *a, int asize, int32 *b, int bsize)
@@ -97,7 +76,7 @@ match_fingerprints(int32 *a, int asize, int32 *b, int bsize)
 		int jbegin = Max(0, i - ACOUSTID_MAX_ALIGN_OFFSET);
 		int jend = Min(bsize, i + ACOUSTID_MAX_ALIGN_OFFSET);
 		for (j = jbegin; j < jend; j++) {
-			int biterror = BITCOUNT(a[i] ^ b[j]);
+			int biterror = POPCOUNT(a[i] ^ b[j]);
 			/* ereport(DEBUG5, (errmsg("comparing %d and %d with error %d", i, j, biterror))); */
 			if (biterror <= ACOUSTID_MAX_BIT_ERROR) {
 				int offset = i - j + bsize;
@@ -208,7 +187,7 @@ match_fingerprints2(int32 *a, int asize, int32 *b, int bsize, int maxoffset)
 	bdata = (uint64_t *)b;
 	biterror = 0;
 	for (i = 0; i < size; i++, adata++, bdata++) {
-		biterror += BITCOUNT64(*adata ^ *bdata);
+		biterror += POPCOUNT64(*adata ^ *bdata);
 	}
 	score = (size * 2.0 / minsize) * (1.0 - 2.0 * (float4)biterror / (64 * size));
 	if (score < 0.0) {
@@ -241,7 +220,7 @@ match_fingerprints3(int32 *a, int asize, int32 *b, int bsize, int maxoffset)
         }
         for (j = jbegin; j < jend; j++) {
             int offset = i - j + bsize;
-            int biterror = BITCOUNT(a[i] ^ b[j]);
+            int biterror = POPCOUNT(a[i] ^ b[j]);
             // Randomly selected blocks share around half their bits, so only count
             // errors less than 16 bits
             if (biterror < 16) {

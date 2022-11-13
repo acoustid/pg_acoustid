@@ -1,2 +1,5 @@
 *.so
 *.o
+*.bc
+/results
+/regression.*

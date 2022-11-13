@@ -1,0 +1,6 @@
+SELECT acoustid_fingerprint(1, '{100,200,300}'::int4[]);
+ acoustid_fingerprint 
+----------------------
+ {100,200,300}
+(1 row)
+

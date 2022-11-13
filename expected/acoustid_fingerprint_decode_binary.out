@@ -1,0 +1,18 @@
+SELECT acoustid_fingerprint_decode_binary(decode('', 'base64'));
+ERROR:  Invalid fingerprint (shorter than 4 bytes)
+SELECT acoustid_fingerprint_decode_binary(decode('AQAAAA==', 'base64'));
+ acoustid_fingerprint_decode_binary 
+------------------------------------
+ {}v1
+(1 row)
+
+SELECT acoustid_fingerprint_decode_binary(decode('AQAAA0mSJJGSJMm=', 'base64'));
+ERROR:  Invalid fingerprint (too short, not enough input for normal bits)
+SELECT acoustid_fingerprint_decode_binary(decode('AQAAA0mSJJGSJMmSCD/uA4AQ', 'base64'));
+ERROR:  Invalid fingerprint (too short, not enough input for exceptional bits)
+SELECT acoustid_fingerprint_decode_binary(decode('AQAAA0mSJJGSJMmSCD/uA4AQAQ==', 'base64'));
+ acoustid_fingerprint_decode_binary 
+------------------------------------
+ {198178303,198047167,164426175}v1
+(1 row)
+

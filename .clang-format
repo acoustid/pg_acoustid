@@ -1,0 +1,16 @@
+Language:        Cpp
+BasedOnStyle:    LLVM
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakAfterDefinitionReturnType: true
+BreakBeforeBinaryOperators: false
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: true
+ColumnLimit:     82
+IndentCaseLabels: true
+MaxEmptyLinesToKeep: 3
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Always
+BreakBeforeBraces: Allman
+SpaceAfterCStyleCast: true
+ForEachMacros:   [ foreach ]
