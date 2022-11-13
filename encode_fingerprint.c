@@ -9,7 +9,7 @@
 static const int MAX_NORMAL_BIT_VALUE = (1 << 3) - 1;
 
 ssize_t
-get_encoded_fingerprint_size(FingerprintData *fp)
+get_encoded_fingerprint_size(FingerprintData* fp)
 {
     uint32_t last_term = 0;
     int i, num_terms = fp->size, num_normal_bits = 0, num_exceptional_bits = 0;
@@ -39,8 +39,10 @@ get_encoded_fingerprint_size(FingerprintData *fp)
     return 4 + GetPackedInt3ArraySize(num_normal_bits) + GetPackedInt5ArraySize(num_exceptional_bits);
 }
 
-ssize_t encode_fingerprint(FingerprintData *fp, uint8_t *output, size_t output_size) {
-    uint8_t *ptr;
+ssize_t
+encode_fingerprint(FingerprintData* fp, uint8_t* output, size_t output_size)
+{
+    uint8_t* ptr;
     uint32_t last_term;
     size_t encoded_size;
     int i, num_terms;
@@ -82,7 +84,7 @@ ssize_t encode_fingerprint(FingerprintData *fp, uint8_t *output, size_t output_s
         return -1;
     }
 
-    ptr = output ;
+    ptr = output;
     ptr[0] = fp->version;
     ptr[1] = num_terms >> 16;
     ptr[2] = num_terms >> 8;
@@ -98,11 +100,13 @@ ssize_t encode_fingerprint(FingerprintData *fp, uint8_t *output, size_t output_s
     return ptr - output;
 }
 
-FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len) {
-    FingerprintData *fp;
+FingerprintData*
+decode_fingerprint(const uint8_t* input, size_t input_len)
+{
+    FingerprintData* fp;
     int i, j, version, num_terms, num_bits, num_exceptional_bits, found_terms, bit, last_bit, cursor = 0;
     uint32_t term, last_term;
-    const uint8_t *header;
+    const uint8_t* header;
     uint8_t *bits, *exceptional_bits;
 
     if (cursor + 4 > input_len) {
@@ -144,15 +148,17 @@ FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len) {
 
     if (found_terms != num_terms) {
         pfree(bits);
-        elog(ERROR, "Invalid fingerprint (too short, not enough input for "
-                    "normal bits)");
+        elog(ERROR,
+             "Invalid fingerprint (too short, not enough input for "
+             "normal bits)");
         return NULL;
     }
 
     if (cursor + GetPackedInt5ArraySize(num_exceptional_bits) > input_len) {
         pfree(bits);
-        elog(ERROR, "Invalid fingerprint (too short, not enough input for "
-                    "exceptional bits)");
+        elog(ERROR,
+             "Invalid fingerprint (too short, not enough input for "
+             "exceptional bits)");
         return NULL;
     }
 
@@ -160,7 +166,7 @@ FingerprintData *decode_fingerprint(const uint8_t *input, size_t input_len) {
         // Estimate the number of exceptional bits stored in the packed
         // fingerprint
         exceptional_bits =
-            palloc(GetUnpackedInt5ArraySize(GetPackedInt5ArraySize(num_exceptional_bits)) * sizeof(uint8_t));
+          palloc(GetUnpackedInt5ArraySize(GetPackedInt5ArraySize(num_exceptional_bits)) * sizeof(uint8_t));
         // Unpack the exceptional bits
         UnpackInt5Array(input + cursor, input + input_len, exceptional_bits);
         // Add the exceptional bits to the normal bits
