@@ -27,6 +27,23 @@ Using in PostgreSQL:
 CREATE EXTENSION acoustid;
 ```
 
+An existing installation gets the functions added in a newer version with:
+
+```sql
+ALTER EXTENSION acoustid UPDATE;
+```
+
+Fingerprints in Chromaprint's compressed format, the one clients submit, can
+be stored as `bytea` and converted to and from arrays of hashes:
+
+```sql
+SELECT acoustid_encode_fingerprint('{1,0}');       -- \x010000024100
+SELECT acoustid_decode_fingerprint('\x010000024100'); -- {1,0}
+```
+
+The codec is in `fingerprint_codec.c`, which depends on nothing but the C
+standard library; `make check-codec` runs its tests.
+
 If you have a version from before PostgreSQL 9.1 installed, you can upgrade it
 to a properly package one with:
 
