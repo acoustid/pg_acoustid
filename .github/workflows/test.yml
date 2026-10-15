@@ -3,6 +3,7 @@ on: [push, pull_request]
 jobs:
   test:
     strategy:
+      fail-fast: false
       matrix:
         pg: [18, 17, 16, 15, 14, 13, 12, 11, 10]
     name: Test on PostgreSQL ${{ matrix.pg }}
