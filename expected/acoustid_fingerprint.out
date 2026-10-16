@@ -1,0 +1,136 @@
+CREATE EXTENSION acoustid;
+-- The example from Chromaprint's tests: two hashes, version 55.
+SELECT acoustid_encode_fingerprint('{1,0}', 55);
+ acoustid_encode_fingerprint 
+-----------------------------
+ \x370000024100
+(1 row)
+
+SELECT acoustid_decode_fingerprint('\x370000024100');
+ acoustid_decode_fingerprint 
+-----------------------------
+ {1,0}
+(1 row)
+
+SELECT acoustid_encode_fingerprint('{1,0}');
+ acoustid_encode_fingerprint 
+-----------------------------
+ \x010000024100
+(1 row)
+
+-- Negative int4 values are the hashes with the top bit set.
+SELECT acoustid_encode_fingerprint('{-1,-2147483648,0}');
+                   acoustid_encode_fingerprint                    
+------------------------------------------------------------------
+ \x01000003499224499224499224499224489224499224499224499224380019
+(1 row)
+
+SELECT acoustid_decode_fingerprint(acoustid_encode_fingerprint('{-1,-2147483648,0}'));
+ acoustid_decode_fingerprint 
+-----------------------------
+ {-1,-2147483648,0}
+(1 row)
+
+-- A real fingerprint, as clients submit it (URL-safe base64).
+CREATE TEMP TABLE fp AS
+SELECT decode(translate('AQAAEwkjrUmSJQpUHflR9mjSJMdZpcO_Imdw9dCO9Clu4_wQPvhCB01w6xAtXNcAp5RASgDBhDSCGGIAcwA', '-_', '+/') || '=', 'base64') AS data;
+SELECT acoustid_decode_fingerprint(data) FROM fp;
+                                                                                            acoustid_decode_fingerprint                                                                                             
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ {-587455133,-591649759,-574868448,-576973520,-543396544,1330439488,1326360000,1326355649,1191625921,1192674515,1194804466,1195336818,1165981042,1165956451,1157441379,1157441299,1291679571,1291673457,1170079601}
+(1 row)
+
+SELECT acoustid_encode_fingerprint(acoustid_decode_fingerprint(data)) = data FROM fp;
+ ?column? 
+----------
+ t
+(1 row)
+
+-- Empty fingerprints, also with data after the header.
+SELECT acoustid_encode_fingerprint('{}');
+ acoustid_encode_fingerprint 
+-----------------------------
+ \x01000000
+(1 row)
+
+SELECT acoustid_decode_fingerprint('\x01000000');
+ acoustid_decode_fingerprint 
+-----------------------------
+ {}
+(1 row)
+
+SELECT acoustid_decode_fingerprint('\x01000000ffb66d03');
+ acoustid_decode_fingerprint 
+-----------------------------
+ {}
+(1 row)
+
+-- Data after the end of a fingerprint is ignored.
+SELECT acoustid_decode_fingerprint('\x370000024100ffffffff');
+ acoustid_decode_fingerprint 
+-----------------------------
+ {1,0}
+(1 row)
+
+SELECT acoustid_decode_fingerprint('\x370000024100'::bytea || decode(repeat('ff', 1000000), 'hex'));
+ acoustid_decode_fingerprint 
+-----------------------------
+ {1,0}
+(1 row)
+
+-- Arrays not starting at index 1 are encoded the same.
+SELECT acoustid_encode_fingerprint('[5:6]={1,0}', 55);
+ acoustid_encode_fingerprint 
+-----------------------------
+ \x370000024100
+(1 row)
+
+-- NULL in, NULL out.
+SELECT acoustid_encode_fingerprint(NULL) IS NULL, acoustid_decode_fingerprint(NULL) IS NULL;
+ ?column? | ?column? 
+----------+----------
+ t        | t
+(1 row)
+
+-- Invalid fingerprints.
+SELECT acoustid_decode_fingerprint('\x');
+ERROR:  invalid fingerprint
+SELECT acoustid_decode_fingerprint('\x010000');
+ERROR:  invalid fingerprint
+SELECT acoustid_decode_fingerprint('\x01000001');
+ERROR:  invalid fingerprint
+SELECT acoustid_decode_fingerprint('\x01ffffff00');
+ERROR:  invalid fingerprint
+-- Four hashes, but only three terminators.
+SELECT acoustid_decode_fingerprint('\x370000044100');
+ERROR:  invalid fingerprint
+-- A set bit past bit 32: six distances of 6, and 7 + 26.
+SELECT acoustid_decode_fingerprint('\x01000001b66d03');
+ERROR:  invalid fingerprint
+SELECT acoustid_decode_fingerprint('\x01000001071a');
+ERROR:  invalid fingerprint
+-- Invalid arrays and versions.
+SELECT acoustid_encode_fingerprint('{1,NULL}');
+ERROR:  array must not contain nulls
+SELECT acoustid_encode_fingerprint('{{1,2},{3,4}}');
+ERROR:  array must be one-dimensional
+SELECT acoustid_encode_fingerprint('{1}', 256);
+ERROR:  fingerprint version must be between 0 and 255
+SELECT acoustid_encode_fingerprint('{1}', -1);
+ERROR:  fingerprint version must be between 0 and 255
+-- Upgrading an existing installation adds the functions.
+DROP EXTENSION acoustid;
+CREATE EXTENSION acoustid VERSION '1.0';
+SELECT count(*) FROM pg_proc WHERE proname LIKE 'acoustid\_%code\_fingerprint';
+ count 
+-------
+     0
+(1 row)
+
+ALTER EXTENSION acoustid UPDATE TO '1.1';
+SELECT acoustid_decode_fingerprint(acoustid_encode_fingerprint('{5,-6,7}'));
+ acoustid_decode_fingerprint 
+-----------------------------
+ {5,-6,7}
+(1 row)
+

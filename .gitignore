@@ -1,2 +1,8 @@
 *.so
 *.o
+*.bc
+/test/test_fingerprint_codec
+/test/test_fingerprint_codec_portable
+/results/
+/regression.diffs
+/regression.out
